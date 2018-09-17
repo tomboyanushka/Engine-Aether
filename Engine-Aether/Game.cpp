@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "DirectXMath.h"
 #include "DDSTextureLoader.h"
+#include "WICTextureLoader.h"
 
 
 using namespace DirectX;
@@ -53,11 +54,10 @@ void Game::Init()
 	CreateMatrices();
 	CreateMesh();
 
-	//CreateDDSTextureFromFile(
-	//	device,
-	//	L"Textures/SunnyCubeMap.dds",
-	//	0,
-	//	&skySRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava.tif", 0, &lavaSRV);
+
+	
 
 
 	//Render the scene to texture.

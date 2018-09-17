@@ -57,6 +57,8 @@ private:
 	SimplePixelShader* ppPS;
 
 	ID3D11SamplerState* sampler;
+	ID3D11ShaderResourceView* lavaSRV;
+	ID3D11ShaderResourceView* slateSRV;
 
 
 	SimpleVertexShader* vertexShader;
@@ -75,12 +77,6 @@ private:
 
 	DirectionalLight light1;
 	DirectionalLight light2;
-
-	GameEntity* gameEntity1;
-	GameEntity* gameEntity2;
-	GameEntity* gameEntity3;
-	GameEntity* gameEntity4;
-	GameEntity* gameEntity5;
 
 	void DrawEntity(GameEntity* gameEntityObject);
 
