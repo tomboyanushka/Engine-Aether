@@ -44,12 +44,12 @@ private:
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
 
-	//skybox
-	ID3D11ShaderResourceView* skySRV;
-	SimpleVertexShader* skyVS;
-	SimplePixelShader* skyPS;
-	ID3D11RasterizerState* skyRasterState;
-	ID3D11DepthStencilState* skyDepthState;
+	////skybox
+	//ID3D11ShaderResourceView* skySRV;
+	//SimpleVertexShader* skyVS;
+	//SimplePixelShader* skyPS;
+	//ID3D11RasterizerState* skyRasterState;
+	//ID3D11DepthStencilState* skyDepthState;
 
 	//postprocess
 	ID3D11RenderTargetView* ppRTV;
@@ -69,10 +69,12 @@ private:
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
 
-
+	//meshes
 	Mesh* sphereMesh;
-
+	Mesh* cubeMesh;
+	//entities
 	GameEntity* sphereEntity;
+	GameEntity* cubeEntity;
 
 	Material* lavaMaterial;
 	Material* slateMaterial;

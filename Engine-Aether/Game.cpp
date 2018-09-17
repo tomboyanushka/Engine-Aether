@@ -39,8 +39,17 @@ Game::~Game()
 	ppRTV->Release();
 	ppSRV->Release();
 
+	lavaSRV->Release();
+	slateSRV->Release();
+	sampler->Release();
+
+	delete lavaMaterial;
+	delete slateMaterial;
+
 	delete sphereEntity;
 	delete sphereMesh;
+	delete cubeEntity;
+	delete cubeMesh;
 	delete camera;
 
 }
@@ -178,48 +187,18 @@ void Game::CreateMatrices()
 
 void Game::CreateMesh()
 {
-	//XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	//XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	//XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-
-	Vertex V1[] =
-	{
-
-		//for mesh1
-		{ XMFLOAT3(+1.0f, +2.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+3.0f, +2.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+3.0f, +1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+1.0f, +1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	};
-
-	Vertex V2[] =
-	{
-		//for mesh2
-		{ XMFLOAT3(+1.0f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+1.5f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+1.5f, -1.5f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+1.0f, -1.5f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-
-	};
-	Vertex V3[] =
-	{
-		//for mesh3
-		{ XMFLOAT3(-1.0f, 2.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(+0.0f, +0.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	{ XMFLOAT3(-2.0f, 0.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-
-	};
-
-	int indices[] = { 0, 1, 2, 2, 3, 0 };
-
-
+	//materials
 	lavaMaterial = new Material(vertexShader, pixelShader, lavaSRV, sampler);
+	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, sampler);
 
+	//meshes
 	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
+	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
+	//entities
 	sphereEntity = new GameEntity(sphereMesh, lavaMaterial);
-
+	cubeEntity = new GameEntity(cubeMesh, slateMaterial);
 
 
 }
@@ -235,6 +214,7 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
 
 	sphereEntity->PrepareMaterial(viewMatrix, projectionMatrix, lavaSRV, sampler);
+	cubeEntity->PrepareMaterial(viewMatrix, projectionMatrix, slateSRV, sampler);
 
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
@@ -271,13 +251,13 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	sphereEntity->SetTranslation(XMFLOAT3(0, 0, -1));
+	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, -1));
 	sphereEntity->SetScale(XMFLOAT3(1.2, 1.2, 1.2));
+
+	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
+	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
 	
 	//sphereEntity->SetRotation(2);
-	
-
-
 
 }
 
@@ -306,6 +286,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	DrawEntity(sphereEntity);
+	DrawEntity(cubeEntity);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
