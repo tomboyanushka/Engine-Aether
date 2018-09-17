@@ -37,6 +37,8 @@ VertexToPixel main(VertexShaderInput input)
 
 	output.normal = mul(input.normal, (float3x3)world);
 
+	output.uv = input.uv;
+
 	//output.color = input.color;
 
 	return output;

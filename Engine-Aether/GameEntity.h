@@ -1,7 +1,8 @@
 #pragma once
 #include <DirectXMath.h>
 #include "Mesh.h"
-#include "SImpleShader.h"
+#include "SimpleShader.h"
+#include "Material.h"
 
 
 using namespace DirectX;
@@ -11,7 +12,7 @@ class GameEntity
 
 
 public:
-	GameEntity(Mesh *mesh);
+	GameEntity(Mesh *mesh, Material* newMat);
 	~GameEntity();
 
 	SimpleVertexShader* vertexShader;
@@ -23,7 +24,9 @@ public:
 
 	void Move(float position);
 	Mesh* GetMesh();
+	Material* GetMaterial();
 	XMFLOAT4X4 GetMatrix();
+	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11ShaderResourceView* objSRV, ID3D11SamplerState* objSampler);
 
 
 
@@ -34,6 +37,9 @@ private:
 	XMFLOAT3 rotation;
 	XMFLOAT3 scale;
 	Mesh* meshObject;
+	Material* materialObject;
+
+
 
 
 

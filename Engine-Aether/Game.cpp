@@ -1,6 +1,5 @@
 #include "Game.h"
 #include "DirectXMath.h"
-#include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 
 
@@ -40,16 +39,17 @@ Game::~Game()
 	ppRTV->Release();
 	ppSRV->Release();
 
-	delete chaletEntity;
-	delete chaletMesh;
+	delete sphereEntity;
+	delete sphereMesh;
 	delete camera;
 
 }
 
 void Game::Init()
 {
-	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+0.0f, +0.0f, +1.0f, +1.0f), XMFLOAT3(+0.0f, -1.0f, 0.0f) };
-	light2 = { XMFLOAT4(+1.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
+	//Ambient, Diffuse, Direction
+	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.6f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
+	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	LoadShaders();
 	CreateMatrices();
 	CreateMesh();
@@ -58,6 +58,20 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava.tif", 0, &lavaSRV);
 
 	
+	//creating a sampler state for the textures
+	D3D11_SAMPLER_DESC sd = {};
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	//sd.Filter = D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR; //tri-linear
+	
+	sd.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd.MaxAnisotropy = 16;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sd, &sampler);
+
 
 
 	//Render the scene to texture.
@@ -200,9 +214,11 @@ void Game::CreateMesh()
 	int indices[] = { 0, 1, 2, 2, 3, 0 };
 
 
-	chaletMesh = new Mesh("../../Assets/Models/sphere.obj", device);
+	lavaMaterial = new Material(vertexShader, pixelShader, lavaSRV, sampler);
 
-	chaletEntity = new GameEntity(chaletMesh);
+	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
+
+	sphereEntity = new GameEntity(sphereMesh, lavaMaterial);
 
 
 
@@ -210,24 +226,18 @@ void Game::CreateMesh()
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
 {
+
 	vertexShader->SetMatrix4x4("world", gameEntityObject->GetMatrix());
 	vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
 	vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
 
-	pixelShader->SetData(
-		"light1",
-		&light1,
-		sizeof(DirectionalLight));
+	pixelShader->SetData("light1", &light1, sizeof(DirectionalLight));
+	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
 
-
-	pixelShader->SetData(
-		"light2",
-		&light2,
-		sizeof(DirectionalLight));
+	sphereEntity->PrepareMaterial(viewMatrix, projectionMatrix, lavaSRV, sampler);
 
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
-
 	pixelShader->CopyAllBufferData();
 	pixelShader->SetShader();
 
@@ -261,9 +271,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	chaletEntity->SetRotation(2);
-	chaletEntity->SetTranslation(XMFLOAT3(sin(totalTime)*0.2f, 0.f, 0.f));
-	chaletEntity->SetScale(XMFLOAT3(2, 2, 2));
+	sphereEntity->SetTranslation(XMFLOAT3(0, 0, -1));
+	sphereEntity->SetScale(XMFLOAT3(1.2, 1.2, 1.2));
+	
+	//sphereEntity->SetRotation(2);
+	
 
 
 
@@ -293,7 +305,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	DrawEntity(chaletEntity);
+	DrawEntity(sphereEntity);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);

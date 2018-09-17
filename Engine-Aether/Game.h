@@ -7,6 +7,7 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "Material.h "
 
 using namespace DirectX;
 
@@ -69,9 +70,13 @@ private:
 	XMFLOAT4X4 projectionMatrix;
 
 
-	Mesh* chaletMesh;
+	Mesh* sphereMesh;
 
-	GameEntity* chaletEntity;
+	GameEntity* sphereEntity;
+
+	Material* lavaMaterial;
+	Material* slateMaterial;
+
 
 	Camera* camera;
 
