@@ -16,7 +16,9 @@ public:
 	//Getters
 	XMFLOAT3 GetPosition();
 	XMFLOAT4X4 GetViewMatrix();
+	XMFLOAT4X4 GetViewMatrixInverse();
 	XMFLOAT4X4 GetProjectionMatrix();
+	XMFLOAT4X4 GetProjectionMatrixInverse();
 
 	void Update(float dt);
 	void UpdateViewMatrix();
@@ -26,6 +28,8 @@ private:
 
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projMatrix;
+	XMFLOAT4X4 viewMatrixInv;
+	XMFLOAT4X4 projMatrixInv;
 
 	//For the look to matrix
 	XMFLOAT3 startPosition;

@@ -60,9 +60,25 @@ XMFLOAT4X4 Camera::GetViewMatrix()
 	return viewMatrix;
 }
 
+XMFLOAT4X4 Camera::GetViewMatrixInverse()
+{
+	XMMATRIX invMat;
+	invMat = XMMatrixInverse(nullptr, XMLoadFloat4x4(&viewMatrix));
+	XMStoreFloat4x4(&viewMatrixInv,invMat);
+	return viewMatrixInv;
+}
+
 XMFLOAT4X4 Camera::GetProjectionMatrix()
 {
 	return projMatrix;
+}
+
+XMFLOAT4X4 Camera::GetProjectionMatrixInverse()
+{
+	XMMATRIX invMat;
+	invMat = XMMatrixInverse(nullptr, XMLoadFloat4x4(&projMatrix));
+	XMStoreFloat4x4(&projMatrixInv, invMat);
+	return projMatrixInv;
 }
 
 void Camera::Update(float dt)

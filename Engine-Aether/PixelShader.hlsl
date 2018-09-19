@@ -17,7 +17,7 @@ cbuffer externalData : register(b0)
 };
 
 //resources for the texture
-Texture2D lavaTexture		: register(t0);
+Texture2D someTexture		: register(t0);
 SamplerState basicSampler	: register(s0);
 
 
@@ -50,7 +50,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float dirNdotL2 = dot(input.normal, dir2);
 	dirNdotL2 = saturate(dirNdotL2);
 
-	float4 surfaceColor = lavaTexture.Sample(basicSampler, input.uv);
+	float4 surfaceColor = someTexture.Sample(basicSampler, input.uv);
 
 	float3 lightOne = surfaceColor.rgb * (light1.DiffuseColor * dirNdotL + light1.AmbientColor);
 	float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
