@@ -51,16 +51,16 @@ private:
 	//ID3D11RasterizerState* skyRasterState;
 	//ID3D11DepthStencilState* skyDepthState;
 
-	//postprocess
-	ID3D11RenderTargetView* ppRTV;
-	ID3D11ShaderResourceView* ppSRV;
-	SimpleVertexShader* ppVS;
-	SimplePixelShader* ppPS;
-
+	//textures
 	ID3D11SamplerState* sampler;
 	ID3D11ShaderResourceView* lavaSRV;
 	ID3D11ShaderResourceView* slateSRV;
 
+	//shaders
+	SimpleVertexShader* ppVS;
+	SimplePixelShader* ppPS;
+	SimplePixelShader* DepthOfFieldPS;
+	SimpleVertexShader* DepthOfFieldVS;
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -88,6 +88,13 @@ private:
 	void DrawEntity(GameEntity* gameEntityObject);
 
 	POINT prevMousePos;
+
+
+	//postprocess
+	ID3D11RenderTargetView* ppRTV;
+	ID3D11ShaderResourceView* ppSRV;
+	ID3D11RenderTargetView* dofRTV;
+	ID3D11ShaderResourceView* dofSRV;
 
 
 };

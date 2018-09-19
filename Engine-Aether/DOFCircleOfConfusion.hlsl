@@ -8,7 +8,7 @@ cbuffer Data : register(b0)
 	//float farBlurryPlaneZ;
 	float nearScale;
 	float4 pixelColor; //float farScale;
-	float4 screenSpace; //FragCoord
+	float4 screenSpaceUV; //FragCoord
 	float radius;
 	float3 clipInfo; //clips off pixels on the side //why?
 	float2 writeScaleBias;
@@ -29,12 +29,12 @@ Texture2D DepthBuffer				: register(t1);
 //Texture2D ColorBuffer				: register(t2);
 SamplerState Sampler				: register(s0);
 
-float3 WorldPosFromDepth(float depth, clipInfo) 
+float3 WorldPosFromDepth(float depth) 
 {
 	float z = depth * 2.0 - 1.0;
 
 	// Get clip space
-	float4 clipSpacePosition = float4(uv * 2.0 - 1.0, z, 1);
+	float4 clipSpacePosition = float4(screenSpaceUV * 2.0 - 1.0, z, 1.0);
 
 	// Clip space -> View space
 	float4 viewSpacePosition = projMatrixInv * clipSpacePosition;
@@ -54,7 +54,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//color = texelFetch(ColorBuffer, uv, 0).rgb; //we are not packing color?
 
 	float z;
-	z = WorldPosFromDepth(Load(DepthBuffer, uv, 0).r, clipInfo); //texelFetch = load?
+	z = WorldPosFromDepth(DepthBuffer.Sample(uv, 1)); //texelFetch = load?
 
 	radius = (z - focusPlaneZ) * scale;
 

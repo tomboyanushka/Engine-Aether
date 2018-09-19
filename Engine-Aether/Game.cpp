@@ -39,6 +39,9 @@ Game::~Game()
 	ppRTV->Release();
 	ppSRV->Release();
 
+	delete DepthOfFieldPS;
+	delete DepthOfFieldVS;
+
 	lavaSRV->Release();
 	slateSRV->Release();
 	sampler->Release();
@@ -93,6 +96,12 @@ void Game::Init()
 	//Texture2D
 	//RTV
 	//SRV
+
+	//post processing 
+	ID3D11Texture2D* postProcTexture;
+	ID3D11Texture2D* dofTexture;
+
+	//setting up render texture
 	D3D11_TEXTURE2D_DESC textureDesc = {};
 	textureDesc.Width = width;
 	textureDesc.Height = height;
@@ -105,26 +114,29 @@ void Game::Init()
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-
-	ID3D11Texture2D* postProcTexture;
 	device->CreateTexture2D(&textureDesc, 0, &postProcTexture);
+	device->CreateTexture2D(&textureDesc, 0, &dofTexture);
 
+
+	//set up render target view
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.Format = textureDesc.Format;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
 	device->CreateRenderTargetView(postProcTexture, &rtvDesc, &ppRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
 
+	//setting up shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = textureDesc.Format;
 	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-
 	device->CreateShaderResourceView(postProcTexture, &srvDesc, &ppSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
 
 	postProcTexture->Release();
+	dofTexture->Release();
 
 	//what kind of shape do you want to draw?
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -149,6 +161,12 @@ void Game::LoadShaders()
 
 	ppPS = new SimplePixelShader(device, context);
 	ppPS->LoadShaderFile(L"PostProcessPS.cso");
+
+	DepthOfFieldPS = new SimplePixelShader(device, context);
+	DepthOfFieldPS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
+
+	DepthOfFieldVS = new SimpleVertexShader(device, context);
+	DepthOfFieldVS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
 }
 
 
@@ -269,7 +287,6 @@ void Game::Draw(float deltaTime, float TotalTime)
 	const float color[4] = { 0.4f, 0.7f, 0.75f, 0.0f };
 
 	//do this before drawing ANYTHING
-
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearRenderTargetView(ppRTV, color);
 	context->ClearDepthStencilView(
