@@ -82,13 +82,16 @@
     <FxCompile Include="PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessPS.hlsl">
+    <FxCompile Include="QuadVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessVS.hlsl">
+    <FxCompile Include="QuadPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DOFCircleOfConfusion.hlsl">
+    <FxCompile Include="BlurPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DOFCircleOfConfusionPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -53,6 +53,7 @@ protected:
 
 	ID3D11RenderTargetView* backBufferRTV;
 	ID3D11DepthStencilView* depthStencilView;
+	ID3D11ShaderResourceView* depthBufferSRV;
 
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 

@@ -39,8 +39,8 @@ Game::~Game()
 	ppRTV->Release();
 	ppSRV->Release();
 
-	delete DepthOfFieldPS;
-	delete DepthOfFieldVS;
+	delete dofPS;
+	delete dofVS;
 
 	lavaSRV->Release();
 	slateSRV->Release();
@@ -99,6 +99,7 @@ void Game::Init()
 
 	//post processing 
 	ID3D11Texture2D* postProcTexture;
+	ID3D11Texture2D* blurTexture;
 	ID3D11Texture2D* dofTexture;
 
 	//setting up render texture
@@ -115,6 +116,7 @@ void Game::Init()
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	device->CreateTexture2D(&textureDesc, 0, &postProcTexture);
+	device->CreateTexture2D(&textureDesc, 0, &blurTexture);
 	device->CreateTexture2D(&textureDesc, 0, &dofTexture);
 
 
@@ -124,6 +126,7 @@ void Game::Init()
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	device->CreateRenderTargetView(postProcTexture, &rtvDesc, &ppRTV);
+	device->CreateRenderTargetView(blurTexture, &rtvDesc, &blurRTV);
 	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
 
 	//setting up shader resource view
@@ -133,9 +136,11 @@ void Game::Init()
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	device->CreateShaderResourceView(postProcTexture, &srvDesc, &ppSRV);
+	device->CreateShaderResourceView(blurTexture, &srvDesc, &blurSRV);
 	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
 
 	postProcTexture->Release();
+	blurTexture->Release();
 	dofTexture->Release();
 
 	//what kind of shape do you want to draw?
@@ -157,16 +162,19 @@ void Game::LoadShaders()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	ppVS = new SimpleVertexShader(device, context);
-	ppVS->LoadShaderFile(L"PostProcessVS.cso");
+	ppVS->LoadShaderFile(L"QuadVS.cso");
 
 	ppPS = new SimplePixelShader(device, context);
-	ppPS->LoadShaderFile(L"PostProcessPS.cso");
+	ppPS->LoadShaderFile(L"QuadPS.cso");
 
-	DepthOfFieldPS = new SimplePixelShader(device, context);
-	DepthOfFieldPS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
+	blurPS = new SimplePixelShader(device, context);
+	blurPS->LoadShaderFile(L"BlurPS.cso");
 
-	DepthOfFieldVS = new SimpleVertexShader(device, context);
-	DepthOfFieldVS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
+	dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DOFCircleOfConfusionPS.cso");
+
+	//DepthOfFieldVS = new SimpleVertexShader(device, context);
+	//DepthOfFieldVS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
 }
 
 
@@ -307,18 +315,18 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+	context->OMSetRenderTargets(1, &blurRTV, 0);
 
 	//post process shaders
 	ppVS->SetShader();
-	ppPS->SetShader();
+	blurPS->SetShader();
 
-	ppPS->SetShaderResourceView("Pixels", ppSRV);
-	ppPS->SetSamplerState("Sampler", sampler);
-	ppPS->SetFloat("blurAmount", 5);
-	ppPS->SetFloat("pixelWidth", 1.0f / width);
-	ppPS->SetFloat("pixelHeight", 1.0f / height);
-	ppPS->CopyAllBufferData();
+	blurPS->SetShaderResourceView("Pixels", ppSRV);
+	blurPS->SetSamplerState("Sampler", sampler);
+	blurPS->SetFloat("blurAmount", 5);
+	blurPS->SetFloat("pixelWidth", 1.0f / width);
+	blurPS->SetFloat("pixelHeight", 1.0f / height);
+	blurPS->CopyAllBufferData();
 
 	ID3D11Buffer* nothing = 0;
 	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
@@ -326,8 +334,40 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	context->Draw(3, 0);
 
-	ppPS->SetShaderResourceView("Pixels", 0);
+	//setting dofRTV
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &dofRTV, 0);
 
+	ppVS->SetShader();
+	dofPS->SetShader();
+
+	dofPS->SetShaderResourceView("Pixels", ppSRV);
+	dofPS->SetSamplerState("Sampler", sampler);
+	dofPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
+	dofPS->SetFloat("focusPlaneZ", 5);
+	dofPS->SetFloat("scale", 1);
+	dofPS->CopyAllBufferData();
+
+	nothing = 0;
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
+
+	//setting backbufferRTV
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+	ppVS->SetShader();
+	ppPS->SetShader();
+
+	ppPS->SetShaderResourceView("Pixels", depthBufferSRV);
+	ppPS->SetSamplerState("Sampler", sampler);
+	ppPS->CopyAllBufferData();
+
+	context->Draw(3, 0);
 
 	swapChain->Present(0, 0);
 

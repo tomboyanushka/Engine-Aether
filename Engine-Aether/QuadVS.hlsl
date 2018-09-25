@@ -1,3 +1,4 @@
+//THIS IS THE QUAD
 struct VertexToPixel
 {
 	float4 position				: SV_POSITION;

@@ -59,8 +59,9 @@ private:
 	//shaders
 	SimpleVertexShader* ppVS;
 	SimplePixelShader* ppPS;
-	SimplePixelShader* DepthOfFieldPS;
-	SimpleVertexShader* DepthOfFieldVS;
+	SimplePixelShader* blurPS;
+	SimplePixelShader* dofPS;
+	SimpleVertexShader* dofVS;
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -93,6 +94,10 @@ private:
 	//postprocess
 	ID3D11RenderTargetView* ppRTV;
 	ID3D11ShaderResourceView* ppSRV;
+
+	ID3D11RenderTargetView* blurRTV;
+	ID3D11ShaderResourceView* blurSRV;
+
 	ID3D11RenderTargetView* dofRTV;
 	ID3D11ShaderResourceView* dofSRV;
 
