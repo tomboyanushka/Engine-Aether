@@ -46,15 +46,20 @@ float3 WorldPosFromDepth(float depth, float2 uv)
 	return worldSpacePosition.xyz;
 }
 
+float reconstructCSZ(float d)
+{
+	return (2/ (1 * d + 0.1));
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	//input.uv = screenSpaceUV + trimBandThickness;	//what is trimbandthickness
 	//color = texelFetch(ColorBuffer, uv, 0).rgb; //we are not packing color?
 
-	float z;
-	z = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv), input.uv); //texelFetch = load?
+	float z = DepthBuffer.Sample(Sampler, input.uv).r;
+	//z = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv).r, input.uv); //texelFetch = load?
 
-	float radius = (z - focusPlaneZ) * scale;
+	float radius = (reconstructCSZ(z) - focusPlaneZ) * scale;
 
 	//radius = radius *writeScaleBias.x + writeScaleBias.y;
 

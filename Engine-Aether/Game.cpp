@@ -345,7 +345,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	dofPS->SetShaderResourceView("Pixels", ppSRV);
 	dofPS->SetSamplerState("Sampler", sampler);
 	dofPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	dofPS->SetFloat("focusPlaneZ", 5);
+	dofPS->SetFloat("focusPlaneZ", 1);
 	dofPS->SetFloat("scale", 1);
 	dofPS->CopyAllBufferData();
 
@@ -363,7 +363,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	ppVS->SetShader();
 	ppPS->SetShader();
 
-	ppPS->SetShaderResourceView("Pixels", depthBufferSRV);
+	ppPS->SetShaderResourceView("Pixels", dofSRV);
 	ppPS->SetSamplerState("Sampler", sampler);
 	ppPS->CopyAllBufferData();
 
