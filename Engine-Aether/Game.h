@@ -86,7 +86,7 @@ private:
 	DirectionalLight light1;
 	DirectionalLight light2;
 
-	void DrawEntity(GameEntity* gameEntityObject);
+	void DrawEntity(GameEntity* gameEntityObject, ID3D11ShaderResourceView* someSRV);
 
 	POINT prevMousePos;
 

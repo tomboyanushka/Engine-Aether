@@ -67,7 +67,7 @@ void Game::Init()
 	CreateMesh();
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava.tif", 0, &lavaSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &lavaSRV);
 
 	
 	//creating a sampler state for the textures
@@ -229,7 +229,7 @@ void Game::CreateMesh()
 
 }
 
-void Game::DrawEntity(GameEntity * gameEntityObject)
+void Game::DrawEntity(GameEntity * gameEntityObject, ID3D11ShaderResourceView* someSRV)
 {
 
 	vertexShader->SetMatrix4x4("world", gameEntityObject->GetMatrix());
@@ -239,8 +239,8 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 	pixelShader->SetData("light1", &light1, sizeof(DirectionalLight));
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
 
-	sphereEntity->PrepareMaterial(viewMatrix, projectionMatrix, lavaSRV, sampler);
-	cubeEntity->PrepareMaterial(viewMatrix, projectionMatrix, slateSRV, sampler);
+	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, someSRV, sampler);
+	//cubeEntity->PrepareMaterial(viewMatrix, projectionMatrix, slateSRV, sampler);
 
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
@@ -310,8 +310,8 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	DrawEntity(sphereEntity);
-	DrawEntity(cubeEntity);
+	DrawEntity(sphereEntity, slateSRV);
+	DrawEntity(cubeEntity, lavaSRV);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
