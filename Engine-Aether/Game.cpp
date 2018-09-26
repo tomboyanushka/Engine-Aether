@@ -36,11 +36,17 @@ Game::~Game()
 
 	delete ppPS;
 	delete ppVS;
-	ppRTV->Release();
-	ppSRV->Release();
-
+	delete blurPS;
 	delete dofPS;
 	delete dofVS;
+
+	ppRTV->Release();
+	ppSRV->Release();
+	blurRTV->Release();
+	blurSRV->Release();
+	dofRTV->Release();
+	dofSRV->Release();
+	depthBufferSRV->Release();
 
 	lavaSRV->Release();
 	slateSRV->Release();
