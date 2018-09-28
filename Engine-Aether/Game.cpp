@@ -353,6 +353,9 @@ void Game::Draw(float deltaTime, float TotalTime)
 	dofPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
 	dofPS->SetFloat("focusPlaneZ", 1);
 	dofPS->SetFloat("scale", 1);
+	dofPS->SetFloat("zFar", 100.0f);
+	dofPS->SetFloat("zNear", 0.1f);
+	//dofPS->SetFloat2("projectionConstants", XMFLOAT2(0.1f, 100.0f));
 	dofPS->CopyAllBufferData();
 
 	nothing = 0;

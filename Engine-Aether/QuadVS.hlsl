@@ -1,8 +1,8 @@
 //THIS IS THE QUAD
 struct VertexToPixel
 {
-	float4 position				: SV_POSITION;
-	float2 uv					:TEXCOORD0;
+	float4 position				:	SV_POSITION;
+	float2 uv					:	TEXCOORD0;
 };
 
 VertexToPixel main(uint id : SV_VERTEXID)

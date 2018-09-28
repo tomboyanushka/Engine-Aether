@@ -148,9 +148,10 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(
 		0.25f * XM_PI,
 		aspectRatio,
-		0.1f,
-		100);
+		0.1f, //nearZ
+		100); //farZ
 
 	XMStoreFloat4x4(&projMatrix, XMMatrixTranspose(P));
+
 
 }

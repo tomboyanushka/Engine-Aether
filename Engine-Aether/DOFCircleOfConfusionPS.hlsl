@@ -1,19 +1,14 @@
 cbuffer Data : register(b0)
 {
-	//float nearBlurryPlaneZ;
-	//float nearSharpPlaneZ;
-	//float farSharpPlaneZ;
-	//float farBlurryPlaneZ;
-	float focusPlaneZ;
-	float scale; //what does it do
-	//float nearScale;
-	//float4 pixelColor; //float farScale;
-	//float2 screenSpaceUV; //FragCoord
-	//float3 clipInfo; //clips off pixels on the side //why?
-	//float2 writeScaleBias;
-	//int2 trimBandThickness;
+
 	float4x4 viewMatrixInv;
 	float4x4 projMatrixInv;
+	float focusPlaneZ;
+	float scale;
+	float zFar;
+	float zNear;
+	//float2 projectionConstants;
+	
 
 }
 
@@ -27,9 +22,19 @@ Texture2D Pixels					: register(t0);
 Texture2D DepthBuffer				: register(t1);
 SamplerState Sampler				: register(s0);
 
+
+float CalcLinearZ(float depth)
+{
+	float2 projectionConstants;
+	projectionConstants.x = zFar / (zFar - zNear);
+	projectionConstants.y = (-zFar * zNear) / (zFar - zNear);
+	output.position = input.position;
+	float depth = output.position.z / output.position.w;
+
+}
 float3 WorldPosFromDepth(float depth, float2 uv) 
 {
-	float z = depth * 2.0 - 1.0;
+	float z = CalcLinearZ(depth) * 2.0 - 1.0;
 
 	// Get clip space
 	float4 clipSpacePosition = float4(uv * 2.0 - 1.0, z, 1.0);
@@ -46,22 +51,30 @@ float3 WorldPosFromDepth(float depth, float2 uv)
 	return worldSpacePosition.xyz;
 }
 
-float reconstructCSZ(float d)
-{
-	return (2/ (1 * d + 0.1));
-}
+
+//
+//float reconstructCSZ(float d)
+//{
+//	return (2/ (1 * d + 0.1));
+//}
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	//input.uv = screenSpaceUV + trimBandThickness;	//what is trimbandthickness
-	//color = texelFetch(ColorBuffer, uv, 0).rgb; //we are not packing color?
+	output.position = input.position;
+	output.linearZ = input.linearZ;
+	float2 projectionConstants;
+	projectionConstants.x = zFar / (zFar - zNear);
+	projectionConstants.y = (-zFar * zNear) / (zFar - zNear);
 
-	float z = DepthBuffer.Sample(Sampler, input.uv).r;
-	//z = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv).r, input.uv); //texelFetch = load?
+	float depth = output.position.z / output.position.w;
+	output.linearZ = ProjectionConstants.y / (depth - ProjectionConstants.x);
+	//float z = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv).r, input.uv); //texelFetch = load?
 
-	float radius = (reconstructCSZ(z) - focusPlaneZ) * scale;
+	float radius = (linearZ - focusPlaneZ) * scale;
 
 	//radius = radius *writeScaleBias.x + writeScaleBias.y;
+
+
 
 	return float4(radius, 0, 0, 0);
 }
