@@ -26,8 +26,19 @@ struct VertexToPixel
 	float4 position			: SV_POSITION;
 	float3 normal			: NORMAL;
 	float2 uv				: TEXCOORD;
+	float linearZ			: LINEARZ;
 
 };
+
+// 10 - 1
+//10.5
+
+// 10.5/100 = 0.105
+
+float PackFloat(float linearZ, float farZ)//float, farZ
+{
+	return linearZ / farZ;
+}
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
@@ -55,8 +66,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 lightOne = surfaceColor.rgb * (light1.DiffuseColor * dirNdotL + light1.AmbientColor);
 	float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
 
-
+	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;
 
-	return float4(lightOne, 1);
+	return float4(lightOne, packedValue);
 }

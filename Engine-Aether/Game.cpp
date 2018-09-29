@@ -176,6 +176,9 @@ void Game::LoadShaders()
 	blurPS = new SimplePixelShader(device, context);
 	blurPS->LoadShaderFile(L"BlurPS.cso");
 
+	dofVS = new SimpleVertexShader(device, context);
+	dofVS->LoadShaderFile(L"CircleOfConfusionVS.cso");
+
 	dofPS = new SimplePixelShader(device, context);
 	dofPS->LoadShaderFile(L"DOFCircleOfConfusionPS.cso");
 
@@ -283,7 +286,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, -1));
+	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, 5));
 	sphereEntity->SetScale(XMFLOAT3(1.2, 1.2, 1.2));
 
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
@@ -345,13 +348,13 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->OMSetDepthStencilState(0, 0);
 	context->OMSetRenderTargets(1, &dofRTV, 0);
 
-	ppVS->SetShader();
+	dofVS->SetShader();
 	dofPS->SetShader();
 
 	dofPS->SetShaderResourceView("Pixels", ppSRV);
 	dofPS->SetSamplerState("Sampler", sampler);
 	dofPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	dofPS->SetFloat("focusPlaneZ", 1);
+	dofPS->SetFloat("focusPlaneZ", 5);
 	dofPS->SetFloat("scale", 1);
 	dofPS->SetFloat("zFar", 100.0f);
 	dofPS->SetFloat("zNear", 0.1f);

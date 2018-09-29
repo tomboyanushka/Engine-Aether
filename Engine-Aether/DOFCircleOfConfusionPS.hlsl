@@ -22,34 +22,37 @@ Texture2D Pixels					: register(t0);
 Texture2D DepthBuffer				: register(t1);
 SamplerState Sampler				: register(s0);
 
-
-float CalcLinearZ(float depth)
+float UnpackFloat(float linearZ, float farZ)
 {
-	float2 projectionConstants;
-	projectionConstants.x = zFar / (zFar - zNear);
-	projectionConstants.y = (-zFar * zNear) / (zFar - zNear);
-	output.position = input.position;
-	float depth = output.position.z / output.position.w;
-
+	return linearZ * farZ;
 }
-float3 WorldPosFromDepth(float depth, float2 uv) 
-{
-	float z = CalcLinearZ(depth) * 2.0 - 1.0;
-
-	// Get clip space
-	float4 clipSpacePosition = float4(uv * 2.0 - 1.0, z, 1.0);
-
-	// Clip space -> View space
-	float4 viewSpacePosition = mul(projMatrixInv, clipSpacePosition);
-
-	// Perspective division
-	viewSpacePosition /= viewSpacePosition.w;
-
-	// View space -> World space
-	float4 worldSpacePosition = mul(viewMatrixInv, viewSpacePosition);
-
-	return worldSpacePosition.xyz;
-}
+//float CalcLinearZ(float depth)
+//{
+//	float2 projectionConstants;
+//	projectionConstants.x = zFar / (zFar - zNear);
+//	projectionConstants.y = (-zFar * zNear) / (zFar - zNear);
+//	float linearZ = projectionConstants.y / (depth - projectionConstants.x);
+//	return linearZ;
+//
+//}
+//float3 WorldPosFromDepth(float depth, float2 uv) 
+//{
+//	float z = CalcLinearZ(depth) * 2.0 - 1.0;
+//
+//	// Get clip space
+//	float4 clipSpacePosition = float4(uv * 2.0 - 1.0, z, 1.0);
+//
+//	// Clip space -> View space
+//	float4 viewSpacePosition = mul(projMatrixInv, clipSpacePosition);
+//
+//	// Perspective division
+//	viewSpacePosition /= viewSpacePosition.w;
+//
+//	// View space -> World space
+//	float4 worldSpacePosition = mul(viewMatrixInv, viewSpacePosition);
+//
+//	return worldSpacePosition.xyz;
+//}
 
 
 //
@@ -59,22 +62,11 @@ float3 WorldPosFromDepth(float depth, float2 uv)
 //}
 
 float4 main(VertexToPixel input) : SV_TARGET
-{
-	output.position = input.position;
-	output.linearZ = input.linearZ;
-	float2 projectionConstants;
-	projectionConstants.x = zFar / (zFar - zNear);
-	projectionConstants.y = (-zFar * zNear) / (zFar - zNear);
+{	
+	float linearZ = UnpackFloat(Pixels.Sample(Sampler, input.uv).a, 100);
 
-	float depth = output.position.z / output.position.w;
-	output.linearZ = ProjectionConstants.y / (depth - ProjectionConstants.x);
-	//float z = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv).r, input.uv); //texelFetch = load?
-
+ // 0.105 * 100 = 10.5
 	float radius = (linearZ - focusPlaneZ) * scale;
-
-	//radius = radius *writeScaleBias.x + writeScaleBias.y;
-
-
 
 	return float4(radius, 0, 0, 0);
 }
