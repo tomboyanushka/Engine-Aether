@@ -1,9 +1,27 @@
 #include "Game.h"
 #include "DirectXMath.h"
 #include "WICTextureLoader.h"
-
+#include "ObjLoader.h"
 
 using namespace DirectX;
+
+Vertex MapObjlToVertex(objl::Vertex vertex)
+{
+	auto pos = XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
+	auto normal = XMFLOAT3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
+	auto uv = XMFLOAT2(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
+	return { pos, normal, uv };
+}
+
+std::vector<Vertex> MapObjlToVertex(std::vector<objl::Vertex> vertices)
+{
+	std::vector<Vertex> verts;
+	for (auto v : vertices)
+	{
+		verts.push_back(MapObjlToVertex(v));
+	}
+	return verts;
+}
 
 Game::Game(HINSTANCE hInstance)
 	: DXCore(
@@ -59,9 +77,12 @@ Game::~Game()
 	delete slateMaterial;
 
 	delete sphereEntity;
-	delete sphereMesh;
+	delete planeEntity;
 	delete cubeEntity;
+
+	delete planetMesh;
 	delete cubeMesh;
+	delete sphereMesh;
 	delete camera;
 
 }
@@ -169,6 +190,8 @@ void Game::Init()
 //and send data to individual variables on GPU
 void Game::LoadShaders()
 {
+
+	
 	vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 
@@ -192,9 +215,6 @@ void Game::LoadShaders()
 
 	DoFPS = new SimplePixelShader(device, context);
 	DoFPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
-
-	//DepthOfFieldVS = new SimpleVertexShader(device, context);
-	//DepthOfFieldVS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
 }
 
 
@@ -233,6 +253,14 @@ void Game::CreateMatrices()
 
 void Game::CreateMesh()
 {
+	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
+	loader.LoadFile("../../Assets/Models/planet.obj");
+
+	auto verts = MapObjlToVertex(loader.LoadedVertices);
+	auto indices = loader.LoadedMeshes[0].Indices;
+	planetMesh = new Mesh();
+	planetMesh->CreateBasicGeometry(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
+
 
 	//materials
 	lavaMaterial = new Material(vertexShader, pixelShader, lavaSRV, sampler);
@@ -245,6 +273,7 @@ void Game::CreateMesh()
 	//entities
 	sphereEntity = new GameEntity(sphereMesh, lavaMaterial);
 	cubeEntity = new GameEntity(cubeMesh, slateMaterial);
+	planeEntity = new GameEntity(planetMesh, slateMaterial);
 
 
 }
@@ -302,6 +331,9 @@ void Game::Update(float deltaTime, float totalTime)
 
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
 	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
+
+	planeEntity->SetTranslation(XMFLOAT3(-2, 0, 2));
+	planeEntity->SetScale(XMFLOAT3(2, 2, 2));
 	
 	//sphereEntity->SetRotation(2);
 
@@ -332,6 +364,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	DrawEntity(sphereEntity, slateSRV);
 	DrawEntity(cubeEntity, lavaSRV);
+	DrawEntity(planeEntity, slateSRV);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
@@ -380,7 +413,6 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 
 	//setting DOFRTV
-	//setting CoCRTV
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 	context->OMSetRenderTargets(1, &DoFRTV, 0);

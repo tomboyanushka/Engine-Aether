@@ -74,10 +74,12 @@ private:
 
 	//meshes
 	Mesh* sphereMesh;
+	Mesh* planetMesh;
 	Mesh* cubeMesh;
 	//entities
 	GameEntity* sphereEntity;
 	GameEntity* cubeEntity;
+	GameEntity* planeEntity;
 
 	Material* lavaMaterial;
 	Material* slateMaterial;
