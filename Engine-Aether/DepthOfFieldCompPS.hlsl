@@ -1,24 +1,36 @@
-//cbuffer Data : register(b0)
-//{
-//
-//}
-//
+cbuffer Data : register(b0)
+{
+
+}
+
 struct VertexToPixel
 {
 	float4 position					: SV_POSITION;
 	float2 uv						: TEXCOORD0;
 };
-//
-//Texture2D Pixels					: register(t0);
-//Texture2D BlurTexture				: register(t1);
-//Texture2D Radius					: register(t2);
-//SamplerState Sampler				: register(s0);
+
+Texture2D Pixels					: register(t0);
+Texture2D BlurTexture				: register(t1);
+Texture2D Radius					: register(t2);
+SamplerState Sampler				: register(s0);
 
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-//	float normalisedRadius = BlurTexture.Sample(Sampler, uv);
+	float4 pack = Pixels.Sample(Sampler, input.uv);
+	float3 sharp = pack.rgb;
+	float radius = Radius.Sample(Sampler, input.uv).r;
+	//bilinear interpolate when reading the blur texture
+	float3 blurred = BlurTexture.Sample(Sampler, input.uv).rgb;
 
-	return float4(1,0,0,0);
+	//Normalized radius
+	float normRadius = (radius * 2.0 - 1.0);
+
+	//Boost the blur factor
+	normRadius = clamp(normRadius * 2.0, -1.0, 1.0);
+
+	float3 result = lerp(sharp, blurred, abs(normRadius));
+
+	return float4(result, 1);
 
 }

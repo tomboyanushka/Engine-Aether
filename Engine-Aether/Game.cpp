@@ -39,6 +39,7 @@ Game::~Game()
 	delete blurPS;
 	delete CoCPS;
 	delete CoCVS;
+	delete DoFPS;
 
 	ppRTV->Release();
 	ppSRV->Release();
@@ -46,6 +47,8 @@ Game::~Game()
 	blurSRV->Release();
 	CoCRTV->Release();
 	CoCSRV->Release();
+	DoFRTV->Release();
+	DoFSRV->Release();
 	depthBufferSRV->Release();
 
 	lavaSRV->Release();
@@ -106,6 +109,7 @@ void Game::Init()
 	//post processing 
 	ID3D11Texture2D* postProcTexture;
 	ID3D11Texture2D* blurTexture;
+	ID3D11Texture2D* cocTexture;
 	ID3D11Texture2D* dofTexture;
 
 	//setting up render texture
@@ -123,6 +127,7 @@ void Game::Init()
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	device->CreateTexture2D(&textureDesc, 0, &postProcTexture);
 	device->CreateTexture2D(&textureDesc, 0, &blurTexture);
+	device->CreateTexture2D(&textureDesc, 0, &cocTexture);
 	device->CreateTexture2D(&textureDesc, 0, &dofTexture);
 
 
@@ -133,7 +138,8 @@ void Game::Init()
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	device->CreateRenderTargetView(postProcTexture, &rtvDesc, &ppRTV);
 	device->CreateRenderTargetView(blurTexture, &rtvDesc, &blurRTV);
-	device->CreateRenderTargetView(dofTexture, &rtvDesc, &CoCRTV);
+	device->CreateRenderTargetView(cocTexture, &rtvDesc, &CoCRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &DoFRTV);
 
 	//setting up shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -143,10 +149,12 @@ void Game::Init()
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	device->CreateShaderResourceView(postProcTexture, &srvDesc, &ppSRV);
 	device->CreateShaderResourceView(blurTexture, &srvDesc, &blurSRV);
-	device->CreateShaderResourceView(dofTexture, &srvDesc, &CoCSRV);
+	device->CreateShaderResourceView(cocTexture, &srvDesc, &CoCSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &DoFSRV);
 
 	postProcTexture->Release();
 	blurTexture->Release();
+	cocTexture->Release();
 	dofTexture->Release();
 
 	//what kind of shape do you want to draw?
@@ -181,6 +189,9 @@ void Game::LoadShaders()
 
 	CoCPS = new SimplePixelShader(device, context);
 	CoCPS->LoadShaderFile(L"CircleOfConfusionPS.cso");
+
+	DoFPS = new SimplePixelShader(device, context);
+	DoFPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
 
 	//DepthOfFieldVS = new SimpleVertexShader(device, context);
 	//DepthOfFieldVS->LoadShaderFile(L"DOFCircleOfConfusion.cso");
@@ -367,6 +378,29 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	context->Draw(3, 0);
 
+
+	//setting DOFRTV
+	//setting CoCRTV
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &DoFRTV, 0);
+
+	ppVS->SetShader();
+	DoFPS->SetShader();
+
+	DoFPS->SetShaderResourceView("Pixels", ppSRV);
+	DoFPS->SetSamplerState("Sampler", sampler);
+	DoFPS->SetShaderResourceView("BlurTexture", blurSRV);
+	DoFPS->SetShaderResourceView("Radius", CoCSRV);
+
+	DoFPS->CopyAllBufferData();
+
+	nothing = 0;
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
+
 	//setting backbufferRTV
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
@@ -375,7 +409,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	ppVS->SetShader();
 	ppPS->SetShader();
 
-	ppPS->SetShaderResourceView("Pixels", CoCSRV);
+	ppPS->SetShaderResourceView("Pixels", DoFSRV);
 	ppPS->SetSamplerState("Sampler", sampler);
 	ppPS->CopyAllBufferData();
 

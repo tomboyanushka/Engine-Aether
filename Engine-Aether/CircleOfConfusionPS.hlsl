@@ -34,6 +34,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	 // 0.105 * 100 = 10.5
 	float radius = (linearZ - focusPlaneZ) * scale;
-
+	radius = (radius + 1) / 2;
 	return float4(radius, 0, 0, 0);
 }

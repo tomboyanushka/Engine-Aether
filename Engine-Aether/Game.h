@@ -62,6 +62,8 @@ private:
 	SimplePixelShader* blurPS;
 	SimplePixelShader* CoCPS;
 	SimpleVertexShader* CoCVS;
+	SimplePixelShader* DoFPS;
+	SimpleVertexShader* DofVS;
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -100,6 +102,9 @@ private:
 
 	ID3D11RenderTargetView* CoCRTV; //CircleOfConfusionRTV and SRV
 	ID3D11ShaderResourceView* CoCSRV;
+
+	ID3D11RenderTargetView* DoFRTV;
+	ID3D11ShaderResourceView* DoFSRV;
 
 
 };
