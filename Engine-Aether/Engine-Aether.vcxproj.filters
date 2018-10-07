@@ -91,10 +91,13 @@
     <FxCompile Include="BlurPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DOFCircleOfConfusionPS.hlsl">
+    <FxCompile Include="CircleOfConfusionVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CircleOfConfusionVS.hlsl">
+    <FxCompile Include="CircleOfConfusionPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DepthOfFieldCompPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

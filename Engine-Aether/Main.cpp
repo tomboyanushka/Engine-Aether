@@ -5,14 +5,6 @@
 
 
 
-Main::Main()
-{
-}
-
-
-Main::~Main()
-{
-}
 
 
 int WINAPI WinMain(HINSTANCE hInstance,
