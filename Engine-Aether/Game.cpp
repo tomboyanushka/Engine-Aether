@@ -90,7 +90,7 @@ Game::~Game()
 void Game::Init()
 {
 	//Ambient, Diffuse, Direction
-	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.6f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
+	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	LoadShaders();
 	CreateMatrices();
@@ -254,7 +254,7 @@ void Game::CreateMatrices()
 void Game::CreateMesh()
 {
 	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
-	loader.LoadFile("../../Assets/Models/planet.obj");
+	loader.LoadFile("../../Assets/Models/sphere.obj");
 
 	auto verts = MapObjlToVertex(loader.LoadedVertices);
 	auto indices = loader.LoadedMeshes[0].Indices;
@@ -332,7 +332,7 @@ void Game::Update(float deltaTime, float totalTime)
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
 	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
 
-	planeEntity->SetTranslation(XMFLOAT3(-2, 0, 2));
+	planeEntity->SetTranslation(XMFLOAT3(-1, 0, 0));
 	planeEntity->SetScale(XMFLOAT3(2, 2, 2));
 	
 	//sphereEntity->SetRotation(2);
@@ -344,7 +344,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 {
 
 	//bg color
-	const float color[4] = { 0.4f, 0.7f, 0.75f, 0.0f };
+	const float color[4] = { 0.0f, 0.0f, 0.1f, 0.0f };
 
 	//do this before drawing ANYTHING
 	context->ClearRenderTargetView(backBufferRTV, color);
