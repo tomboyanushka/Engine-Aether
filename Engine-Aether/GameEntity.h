@@ -22,10 +22,13 @@ public:
 	void SetScale(XMFLOAT3 setScale);
 	void SetRotation(float setRotation);
 
-	void Move(float position);
+	void Move(float x, float y, float z);
+	void Rotate(float x, float y, float z);
+
 	Mesh* GetMesh();
 	Material* GetMaterial();
 	XMFLOAT4X4 GetMatrix();
+	void UpdateWorldMatrix();
 	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11ShaderResourceView* objSRV, ID3D11SamplerState* objSampler);
 
 

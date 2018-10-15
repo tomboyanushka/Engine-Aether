@@ -71,16 +71,18 @@ Game::~Game()
 
 	lavaSRV->Release();
 	slateSRV->Release();
+	earthSRV->Release();
 	sampler->Release();
 
 	delete lavaMaterial;
 	delete slateMaterial;
+	delete earthMaterial;
 
 	delete sphereEntity;
-	delete planeEntity;
+	delete earthEntity;
 	delete cubeEntity;
 
-	delete planetMesh;
+	delete earthMesh;
 	delete cubeMesh;
 	delete sphereMesh;
 	delete camera;
@@ -90,7 +92,7 @@ Game::~Game()
 void Game::Init()
 {
 	//Ambient, Diffuse, Direction
-	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
+	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.8f) };
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	LoadShaders();
 	CreateMatrices();
@@ -98,6 +100,7 @@ void Game::Init()
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &lavaSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/EarthTexture.png", 0, &earthSRV);
 
 	
 	//creating a sampler state for the textures
@@ -254,17 +257,18 @@ void Game::CreateMatrices()
 void Game::CreateMesh()
 {
 	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
-	loader.LoadFile("../../Assets/Models/sphere.obj");
+	loader.LoadFile("../../Assets/Models/Earth.obj");
 
 	auto verts = MapObjlToVertex(loader.LoadedVertices);
 	auto indices = loader.LoadedMeshes[0].Indices;
-	planetMesh = new Mesh();
-	planetMesh->CreateBasicGeometry(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
+	earthMesh = new Mesh();
+	earthMesh->CreateBasicGeometry(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 
 
 	//materials
 	lavaMaterial = new Material(vertexShader, pixelShader, lavaSRV, sampler);
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, sampler);
+	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, sampler);
 
 	//meshes
 	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
@@ -273,7 +277,7 @@ void Game::CreateMesh()
 	//entities
 	sphereEntity = new GameEntity(sphereMesh, lavaMaterial);
 	cubeEntity = new GameEntity(cubeMesh, slateMaterial);
-	planeEntity = new GameEntity(planetMesh, slateMaterial);
+	earthEntity = new GameEntity(earthMesh, earthMaterial);
 
 
 }
@@ -332,11 +336,15 @@ void Game::Update(float deltaTime, float totalTime)
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
 	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
 
-	planeEntity->SetTranslation(XMFLOAT3(-1, 0, 0));
-	planeEntity->SetScale(XMFLOAT3(2, 2, 2));
 	
-	//sphereEntity->SetRotation(2);
-
+	earthEntity->SetTranslation(XMFLOAT3(-10, 0, 5));
+	//earthEntity->SetRotation(totalTime * 0.25f);
+	earthEntity->SetScale(XMFLOAT3(0.2, 0.2, 0.2));
+	earthEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
+	
+	
+	//earthEntity->GetMatrix();
+	//earthEntity->UpdateWorldMatrix();
 }
 
 
@@ -344,7 +352,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 {
 
 	//bg color
-	const float color[4] = { 0.0f, 0.0f, 0.1f, 0.0f };
+	const float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	//do this before drawing ANYTHING
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -364,7 +372,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	DrawEntity(sphereEntity, slateSRV);
 	DrawEntity(cubeEntity, lavaSRV);
-	DrawEntity(planeEntity, slateSRV);
+	DrawEntity(earthEntity, earthSRV);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);

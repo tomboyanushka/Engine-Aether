@@ -54,6 +54,7 @@ private:
 	//textures
 	ID3D11SamplerState* sampler;
 	ID3D11ShaderResourceView* lavaSRV;
+	ID3D11ShaderResourceView* earthSRV;
 	ID3D11ShaderResourceView* slateSRV;
 
 	//shaders
@@ -74,15 +75,16 @@ private:
 
 	//meshes
 	Mesh* sphereMesh;
-	Mesh* planetMesh;
+	Mesh* earthMesh;
 	Mesh* cubeMesh;
 	//entities
 	GameEntity* sphereEntity;
 	GameEntity* cubeEntity;
-	GameEntity* planeEntity;
+	GameEntity* earthEntity;
 
 	Material* lavaMaterial;
 	Material* slateMaterial;
+	Material* earthMaterial;
 
 
 	Camera* camera;
