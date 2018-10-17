@@ -8,7 +8,9 @@
 #include "Camera.h"
 #include "Lights.h"
 #include "Material.h "
-
+#include <vector>
+#include <stdlib.h>
+#include <time.h>
 using namespace DirectX;
 
 
@@ -31,6 +33,7 @@ public:
 
 
 	void DrawMesh(Mesh* mesh);
+	float focusZ = 5;
 
 
 private:
@@ -53,9 +56,12 @@ private:
 
 	//textures
 	ID3D11SamplerState* sampler;
-	ID3D11ShaderResourceView* lavaSRV;
+	ID3D11ShaderResourceView* rectSRV;
+	ID3D11ShaderResourceView* rectNormalSRV;
 	ID3D11ShaderResourceView* earthSRV;
+	ID3D11ShaderResourceView* earthNormalSRV;
 	ID3D11ShaderResourceView* slateSRV;
+	ID3D11ShaderResourceView* slateNormalSRV;
 
 	//shaders
 	SimpleVertexShader* ppVS;
@@ -73,6 +79,7 @@ private:
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
 
+	std::vector<GameEntity*> entities;
 	//meshes
 	Mesh* sphereMesh;
 	Mesh* earthMesh;
@@ -85,6 +92,7 @@ private:
 	Material* lavaMaterial;
 	Material* slateMaterial;
 	Material* earthMaterial;
+	Material* earthNormal;
 
 
 	Camera* camera;
@@ -92,7 +100,7 @@ private:
 	DirectionalLight light1;
 	DirectionalLight light2;
 
-	void DrawEntity(GameEntity* gameEntityObject, ID3D11ShaderResourceView* someSRV);
+	void DrawEntity(GameEntity* gameEntityObject);
 
 	POINT prevMousePos;
 

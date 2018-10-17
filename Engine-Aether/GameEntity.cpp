@@ -6,12 +6,10 @@ GameEntity::GameEntity(Mesh * mesh, Material* newMat)
 
 	this->meshObject = mesh;
 	this->materialObject = newMat;
-
-	//delcaring the floats
-	/*position = XMFLOAT3(1.0f, 1.0f, 0.0f);
-	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	scale = XMFLOAT3(1.5f, 0.5f, 0.0f);*/
-
+	this->SetTranslation(XMFLOAT3(0.0, 0.0, 0.0));
+	this->SetScale(XMFLOAT3(1.0, 1.0, 1.0));
+	//rotation = XMFLOAT3(1.0, 1.0, 1.0);
+	this->Rotate(1, 1, 1);
 	GetMatrix();
 
 }
@@ -70,7 +68,7 @@ XMFLOAT4X4 GameEntity::GetMatrix() //returning the world matrix
 
 	//coverting to matrices
 	XMMATRIX mPosition = XMMatrixTranslationFromVector(vPosition);
-	XMMATRIX mRotation = XMMatrixRotationZ(rotation.z);
+	XMMATRIX mRotation = XMMatrixRotationY(rotation.y);
 	XMMATRIX mScale = XMMatrixScalingFromVector(vScale);
 
 	
@@ -98,13 +96,14 @@ void GameEntity::UpdateWorldMatrix()
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(total));
 }
 
-void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11ShaderResourceView * objSRV, ID3D11SamplerState * objSampler)
+void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11SamplerState * objSampler)
 {
 	auto vertexShader = materialObject->GetVertexShader();
 	auto pixelShader = materialObject->GetPixelShader();
 
 	//first SRV, then sample it
-	pixelShader->SetShaderResourceView("someTexture", objSRV);
+	pixelShader->SetShaderResourceView("someTexture", materialObject->GetSRV());
+	pixelShader->SetShaderResourceView("NormalTexture", materialObject->GetNormalSRV());
 	pixelShader->SetSamplerState("basicSampler", objSampler);
 
 	vertexShader->SetMatrix4x4("World", GetMatrix());

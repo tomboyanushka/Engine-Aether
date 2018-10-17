@@ -69,7 +69,7 @@ Game::~Game()
 	DoFSRV->Release();
 	depthBufferSRV->Release();
 
-	lavaSRV->Release();
+	rectSRV->Release();
 	slateSRV->Release();
 	earthSRV->Release();
 	sampler->Release();
@@ -96,13 +96,16 @@ void Game::Init()
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	LoadShaders();
 	CreateMatrices();
-	CreateMesh();
+
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &lavaSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/EarthTexture.png", 0, &earthSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slateNormal.tif", 0, &slateNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &rectSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rectNormal.jpg", 0, &rectNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
 
-	
+	CreateMesh();
 	//creating a sampler state for the textures
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -266,23 +269,30 @@ void Game::CreateMesh()
 
 
 	//materials
-	lavaMaterial = new Material(vertexShader, pixelShader, lavaSRV, sampler);
-	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, sampler);
-	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, sampler);
+	lavaMaterial = new Material(vertexShader, pixelShader, rectSRV, rectNormalSRV, sampler);
+	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, sampler);
+	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, sampler);
 
 	//meshes
 	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
 	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
 	//entities
-	sphereEntity = new GameEntity(sphereMesh, lavaMaterial);
-	cubeEntity = new GameEntity(cubeMesh, slateMaterial);
+	sphereEntity = new GameEntity(sphereMesh, slateMaterial);
+	cubeEntity = new GameEntity(cubeMesh, lavaMaterial);
 	earthEntity = new GameEntity(earthMesh, earthMaterial);
+
+	srand(time(NULL));
+	for (int i = 0; i < 5; ++i)
+	{
+		entities.push_back(new GameEntity(sphereMesh, slateMaterial));
+		entities[i]->SetTranslation(XMFLOAT3(rand() % 3 + 1, 0, rand() % 30 + 1));
+	}
 
 
 }
 
-void Game::DrawEntity(GameEntity * gameEntityObject, ID3D11ShaderResourceView* someSRV)
+void Game::DrawEntity(GameEntity * gameEntityObject)
 {
 
 	vertexShader->SetMatrix4x4("world", gameEntityObject->GetMatrix());
@@ -292,7 +302,7 @@ void Game::DrawEntity(GameEntity * gameEntityObject, ID3D11ShaderResourceView* s
 	pixelShader->SetData("light1", &light1, sizeof(DirectionalLight));
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
 
-	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, someSRV, sampler);
+	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler);
 	//cubeEntity->PrepareMaterial(viewMatrix, projectionMatrix, slateSRV, sampler);
 
 	vertexShader->CopyAllBufferData();
@@ -330,17 +340,17 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, 5));
-	sphereEntity->SetScale(XMFLOAT3(1.2, 1.2, 1.2));
+	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, 20));
+	sphereEntity->SetScale(XMFLOAT3(2, 2, 2));
 
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
 	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
 
 	
-	earthEntity->SetTranslation(XMFLOAT3(-10, 0, 5));
+	sphereEntity->SetTranslation(XMFLOAT3(-10, 0, 12));
 	//earthEntity->SetRotation(totalTime * 0.25f);
-	earthEntity->SetScale(XMFLOAT3(0.2, 0.2, 0.2));
-	earthEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
+	sphereEntity->SetScale(XMFLOAT3(0.2, 0.2, 0.2));
+	//sphereEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
 	
 	
 	//earthEntity->GetMatrix();
@@ -352,7 +362,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 {
 
 	//bg color
-	const float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	const float color[4] = { 0.2f, 0.2f, 0.2f, 0.0f };
 
 	//do this before drawing ANYTHING
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -370,9 +380,13 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	DrawEntity(sphereEntity, slateSRV);
-	DrawEntity(cubeEntity, lavaSRV);
-	DrawEntity(earthEntity, earthSRV);
+	DrawEntity(sphereEntity);
+	for (auto e : entities)
+	{
+		DrawEntity(e);
+	}
+	//DrawEntity(cubeEntity);
+	//DrawEntity(earthEntity);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
@@ -383,10 +397,16 @@ void Game::Draw(float deltaTime, float TotalTime)
 	blurPS->SetShader();
 
 	blurPS->SetShaderResourceView("Pixels", ppSRV);
+	blurPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
 	blurPS->SetSamplerState("Sampler", sampler);
 	blurPS->SetFloat("blurAmount", 5);
 	blurPS->SetFloat("pixelWidth", 1.0f / width);
 	blurPS->SetFloat("pixelHeight", 1.0f / height);
+	blurPS->SetMatrix4x4("viewMatrixInv", camera->GetViewMatrixInverse());
+	blurPS->SetMatrix4x4("projMatrixInv", camera->GetProjectionMatrixInverse());
+	blurPS->SetFloat("focusPlaneZ", focusZ);
+	blurPS->SetFloat("zFar", 100.0f);
+	blurPS->SetFloat("zNear", 0.1f);
 	blurPS->CopyAllBufferData();
 
 	ID3D11Buffer* nothing = 0;
@@ -406,7 +426,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	CoCPS->SetShaderResourceView("Pixels", ppSRV);
 	CoCPS->SetSamplerState("Sampler", sampler);
 	CoCPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	CoCPS->SetFloat("focusPlaneZ", 5);
+	CoCPS->SetFloat("focusPlaneZ", focusZ);
 	CoCPS->SetFloat("scale", 1);
 	CoCPS->SetFloat("zFar", 100.0f);
 	CoCPS->SetFloat("zNear", 0.1f);

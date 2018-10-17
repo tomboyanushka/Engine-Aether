@@ -10,62 +10,6 @@ Mesh::Mesh()
 {
 
 }
-
-Mesh::Mesh(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
-{
-	CreateBasicGeometry(vertices, vertexCount, indices, indexCount, device);
-}
-
-void Mesh::CreateBasicGeometry(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
-{
-	//initializing is important apparently
-	vertexBuffer = 0;
-	indexBuffer = 0;
-	this->indexCount = indexCount;
-
-	//creating vertex buffer description
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * vertexCount; //3 is no. of vertices
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
-
-	// Create the proper struct to hold the initial vertex data
-	// - This is how we put the initial data into the buffer
-	D3D11_SUBRESOURCE_DATA initialVertexData;
-	initialVertexData.pSysMem = vertices;
-
-	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	device->CreateBuffer(&vbd, &initialVertexData, &vertexBuffer);
-
-
-	//Index buffer desc
-	D3D11_BUFFER_DESC ibd;
-
-	//We end up going with D3D11_USAGE_IMMUTABLE, which signifies that we’ll never change the data stored in the buffer, and that the buffer will be read only by the GPU. 
-	//This is one of the fastest options, resulting in the drivers storing the data directly in GPU memory
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int) * indexCount; //no. of indices
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = indices;
-
-	device->CreateBuffer(&ibd, &initialIndexData, &indexBuffer);
-
-}
-
-//Mesh::Mesh(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
-//{
-//	CreateBasicGeometry(vertices, vertexCount, indices, indexCount, device);
-//}
-
 Mesh::Mesh(const char * objFile, ID3D11Device * device)
 {
 	// File input object
@@ -225,18 +169,124 @@ Mesh::Mesh(const char * objFile, ID3D11Device * device)
 	obj.close();
 	CreateBasicGeometry(&verts[0], (UINT)verts.size(), &indices[0], vertCounter, device);
 
-
-	// - At this point, "verts" is a vector of Vertex structs, and can be used
-	//    directly to create a vertex buffer:  &verts[0] is the address of the first vert
-	//
-	// - The vector "indices" is similar. It's a vector of unsigned ints and
-	//    can be used directly for the index buffer: &indices[0] is the address of the first int
-	//
-	// - "vertCounter" is BOTH the number of vertices and the number of indices
-	// - Yes, the indices are a bit redundant here (one per vertex).  Could you skip using
-	//    an index buffer in this case?  Sure!  Though, if your mesh class assumes you have
-	//    one, you'll need to write some extra code to handle cases when you don't.
 }
+
+
+void Mesh::CreateBasicGeometry(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
+{
+	CalculateTangents(vertices, vertexCount, indices, indexCount);
+	//initializing is important apparently
+	vertexBuffer = 0;
+	indexBuffer = 0;
+	this->indexCount = indexCount;
+
+	//creating vertex buffer description
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(Vertex) * vertexCount; //3 is no. of vertices
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	vbd.StructureByteStride = 0;
+
+	// Create the proper struct to hold the initial vertex data
+	// - This is how we put the initial data into the buffer
+	D3D11_SUBRESOURCE_DATA initialVertexData;
+	initialVertexData.pSysMem = vertices;
+
+	// Actually create the buffer with the initial data
+	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
+	device->CreateBuffer(&vbd, &initialVertexData, &vertexBuffer);
+
+
+	//Index buffer desc
+	D3D11_BUFFER_DESC ibd;
+
+	//We end up going with D3D11_USAGE_IMMUTABLE, which signifies that we’ll never change the data stored in the buffer, and that the buffer will be read only by the GPU. 
+	//This is one of the fastest options, resulting in the drivers storing the data directly in GPU memory
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.ByteWidth = sizeof(int) * indexCount; //no. of indices
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+	ibd.MiscFlags = 0;
+	ibd.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA initialIndexData;
+	initialIndexData.pSysMem = indices;
+
+	device->CreateBuffer(&ibd, &initialIndexData, &indexBuffer);
+
+}
+
+void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount)
+{
+	XMFLOAT3 *tan1 = new XMFLOAT3[vertexCount * 2];
+	XMFLOAT3 *tan2 = tan1 + vertexCount;
+	ZeroMemory(tan1, vertexCount * sizeof(XMFLOAT3) * 2);
+	int triangleCount = indexCount / 3;
+	for (UINT i = 0; i < indexCount; i += 3)
+	{
+		int i1 = indices[i];
+		int i2 = indices[i + 2];
+		int i3 = indices[i + 1];
+		auto v1 = vertices[i1].Position;
+		auto v2 = vertices[i2].Position;
+		auto v3 = vertices[i3].Position;
+
+		auto w1 = vertices[i1].UV;
+		auto w2 = vertices[i2].UV;
+		auto w3 = vertices[i3].UV;
+
+		float x1 = v2.x - v1.x;
+		float x2 = v3.x - v1.x;
+		float y1 = v2.y - v1.y;
+		float y2 = v3.y - v1.y;
+		float z1 = v2.z - v1.z;
+		float z2 = v3.z - v1.z;
+
+		float s1 = w2.x - w1.x;
+		float s2 = w3.x - w1.x;
+		float t1 = w2.y - w1.y;
+		float t2 = w3.y - w1.y;
+		float r = 1.0F / (s1 * t2 - s2 * t1);
+
+		XMFLOAT3 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+			(t2 * z1 - t1 * z2) * r);
+
+		XMFLOAT3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+			(s1 * z2 - s2 * z1) * r);
+
+		XMStoreFloat3(&tan1[i1], XMLoadFloat3(&tan1[i1]) + XMLoadFloat3(&sdir));
+		XMStoreFloat3(&tan1[i2], XMLoadFloat3(&tan1[i2]) + XMLoadFloat3(&sdir));
+		XMStoreFloat3(&tan1[i3], XMLoadFloat3(&tan1[i3]) + XMLoadFloat3(&sdir));
+
+		XMStoreFloat3(&tan2[i1], XMLoadFloat3(&tan2[i1]) + XMLoadFloat3(&tdir));
+		XMStoreFloat3(&tan2[i2], XMLoadFloat3(&tan2[i2]) + XMLoadFloat3(&tdir));
+		XMStoreFloat3(&tan2[i3], XMLoadFloat3(&tan2[i3]) + XMLoadFloat3(&tdir));
+	}
+
+	for (UINT a = 0; a < vertexCount; a++)
+	{
+		auto n = vertices[a].Normal;
+		auto t = tan1[a];
+
+		// Gram-Schmidt orthogonalize
+		auto dot = XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t));
+		XMStoreFloat3(&vertices[a].Tangent, XMVector3Normalize(XMLoadFloat3(&t) - XMLoadFloat3(&n)* dot));
+
+		// Calculate handedness
+		/*tangent[a].w = (Dot(Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;*/
+	}
+
+	delete[] tan1;
+}
+
+//Mesh::Mesh(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
+//{
+//	CreateBasicGeometry(vertices, vertexCount, indices, indexCount, device);
+//}
+
+
 
 
 ID3D11Buffer * Mesh::GetVertexBuffer()

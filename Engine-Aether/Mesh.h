@@ -21,7 +21,7 @@ public:
 	int GetIndexCount();
 
 	void CreateBasicGeometry(Vertex* vertices, UINT vertexCount, UINT* indices, UINT indexCount, ID3D11Device *device);
-
+	void CalculateTangents(Vertex* vertices, UINT vertexCount, UINT* indices, UINT indexCount);
 
 
 

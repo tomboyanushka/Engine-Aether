@@ -29,7 +29,7 @@ public:
 	Material* GetMaterial();
 	XMFLOAT4X4 GetMatrix();
 	void UpdateWorldMatrix();
-	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11ShaderResourceView* objSRV, ID3D11SamplerState* objSampler);
+	void PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11SamplerState* objSampler);
 
 
 
