@@ -70,8 +70,11 @@ Game::~Game()
 	depthBufferSRV->Release();
 
 	rectSRV->Release();
+	rectNormalSRV->Release();
 	slateSRV->Release();
+	slateNormalSRV->Release();
 	earthSRV->Release();
+	earthNormalSRV->Release();
 	sampler->Release();
 
 	delete lavaMaterial;
@@ -81,6 +84,10 @@ Game::~Game()
 	delete sphereEntity;
 	delete earthEntity;
 	delete cubeEntity;
+	for (auto e : entities)
+	{
+		delete e;
+	}
 
 	delete earthMesh;
 	delete cubeMesh;
@@ -260,7 +267,7 @@ void Game::CreateMatrices()
 void Game::CreateMesh()
 {
 	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
-	loader.LoadFile("../../Assets/Models/Earth.obj");
+	loader.LoadFile("../../Assets/Models/sphere.obj");
 
 	auto verts = MapObjlToVertex(loader.LoadedVertices);
 	auto indices = loader.LoadedMeshes[0].Indices;
@@ -282,12 +289,19 @@ void Game::CreateMesh()
 	cubeEntity = new GameEntity(cubeMesh, lavaMaterial);
 	earthEntity = new GameEntity(earthMesh, earthMaterial);
 
-	srand(time(NULL));
+	//srand(time(NULL));
 	for (int i = 0; i < 5; ++i)
 	{
 		entities.push_back(new GameEntity(sphereMesh, slateMaterial));
-		entities[i]->SetTranslation(XMFLOAT3(rand() % 3 + 1, 0, rand() % 30 + 1));
+		//entities[i]->SetTranslation(XMFLOAT3(rand() % 2, 0, rand() % 30 + 1));
+		
 	}
+
+	entities[0]->SetTranslation(XMFLOAT3(-3.0, 0.0, 1.0));
+	entities[1]->SetTranslation(XMFLOAT3(-5.0, 0.0, 2.0));
+	entities[2]->SetTranslation(XMFLOAT3(-4.0, 0.0, 4.0));
+	entities[3]->SetTranslation(XMFLOAT3(1.0, 0.0, 5.0));
+	entities[4]->SetTranslation(XMFLOAT3(2.0, 0.0, 7.0));
 
 
 }
@@ -340,21 +354,16 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	sphereEntity->SetTranslation(XMFLOAT3(-1, 0, 20));
-	sphereEntity->SetScale(XMFLOAT3(2, 2, 2));
-
 	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
+	
 	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
 
+	earthEntity->SetScale(XMFLOAT3(1, 1, 1));
+	earthEntity->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
+	//earthEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
 	
-	sphereEntity->SetTranslation(XMFLOAT3(-10, 0, 12));
-	//earthEntity->SetRotation(totalTime * 0.25f);
-	sphereEntity->SetScale(XMFLOAT3(0.2, 0.2, 0.2));
-	//sphereEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
+	earthEntity->SetTranslation(XMFLOAT3(2, 0, 0));
 	
-	
-	//earthEntity->GetMatrix();
-	//earthEntity->UpdateWorldMatrix();
 }
 
 
@@ -362,7 +371,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 {
 
 	//bg color
-	const float color[4] = { 0.2f, 0.2f, 0.2f, 0.0f };
+	const float color[4] = { 0.1f, 0.1f, 0.1f, 0.0f };
 
 	//do this before drawing ANYTHING
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -386,7 +395,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 		DrawEntity(e);
 	}
 	//DrawEntity(cubeEntity);
-	//DrawEntity(earthEntity);
+	DrawEntity(earthEntity);
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);

@@ -9,7 +9,8 @@ GameEntity::GameEntity(Mesh * mesh, Material* newMat)
 	this->SetTranslation(XMFLOAT3(0.0, 0.0, 0.0));
 	this->SetScale(XMFLOAT3(1.0, 1.0, 1.0));
 	//rotation = XMFLOAT3(1.0, 1.0, 1.0);
-	this->Rotate(1, 1, 1);
+	//this->Rotate(1, 1, 1);
+	this->SetRotation(0, 0, 0);
 	GetMatrix();
 
 }
@@ -28,9 +29,9 @@ void GameEntity::SetScale(XMFLOAT3 setScale)
 	scale = setScale;
 }
 
-void GameEntity::SetRotation(float setRotation)
+void GameEntity::SetRotation(float x, float y, float z)
 {
-	rotation.y = setRotation;
+	rotation = XMFLOAT3(x,y,z);
 }
 
 void GameEntity::Move(float x, float y, float z)
@@ -68,14 +69,14 @@ XMFLOAT4X4 GameEntity::GetMatrix() //returning the world matrix
 
 	//coverting to matrices
 	XMMATRIX mPosition = XMMatrixTranslationFromVector(vPosition);
-	XMMATRIX mRotation = XMMatrixRotationY(rotation.y);
+	XMMATRIX mRotation = XMMatrixRotationRollPitchYawFromVector(vRotation);
 	XMMATRIX mScale = XMMatrixScalingFromVector(vScale);
 
 	
 	XMMATRIX wake = XMMatrixIdentity();
 
 	//calculte world matrix
-	XMMATRIX world = mPosition * mRotation * mScale;
+	XMMATRIX world = mScale * mRotation * mPosition;
 
 	//storing the world matrix
 

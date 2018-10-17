@@ -81,6 +81,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;
-
-	return float4(lightOne, packedValue);
+	float3 r = pow(lightOne, 1.0 / 2.2);
+	return float4(r, packedValue);
 }

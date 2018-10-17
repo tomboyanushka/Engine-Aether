@@ -59,7 +59,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float linearZ = CalcLinearZ(depth);
 	//float3 WorldZ = WorldPosFromDepth(DepthBuffer.Sample(Sampler, input.uv).r, input.uv);
 
-	if (linearZ > focusPlaneZ + 5 || linearZ < focusPlaneZ - 1)
+	if (linearZ > focusPlaneZ + 3 || linearZ < focusPlaneZ - 1)
 	{
 		for (int x = -blurAmount; x <= blurAmount; x++)
 		{

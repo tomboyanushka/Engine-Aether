@@ -20,7 +20,7 @@ public:
 
 	void SetTranslation(XMFLOAT3 setPos);
 	void SetScale(XMFLOAT3 setScale);
-	void SetRotation(float setRotation);
+	void SetRotation(float x, float y, float z);
 
 	void Move(float x, float y, float z);
 	void Rotate(float x, float y, float z);
