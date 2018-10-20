@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "DirectXMath.h"
 #include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
 #include "ObjLoader.h"
 
 using namespace DirectX;
@@ -58,6 +59,8 @@ Game::~Game()
 	delete CoCPS;
 	delete CoCVS;
 	delete DoFPS;
+	delete skyPS;
+	delete skyVS;
 
 	ppRTV->Release();
 	ppSRV->Release();
@@ -75,7 +78,11 @@ Game::~Game()
 	slateNormalSRV->Release();
 	earthSRV->Release();
 	earthNormalSRV->Release();
+	skySRV->Release();
 	sampler->Release();
+
+	skyDepthState->Release();
+	skyRasterState->Release();
 
 	delete lavaMaterial;
 	delete slateMaterial;
@@ -83,7 +90,7 @@ Game::~Game()
 
 	delete sphereEntity;
 	delete earthEntity;
-	delete cubeEntity;
+
 	for (auto e : entities)
 	{
 		delete e;
@@ -104,13 +111,16 @@ void Game::Init()
 	LoadShaders();
 	CreateMatrices();
 
-
+	//loading textures and normal maps
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slateNormal.tif", 0, &slateNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &rectSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rectNormal.jpg", 0, &rectNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
+
+	//Load skybox texture from DDS file
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &skySRV);
 
 	CreateMesh();
 	//creating a sampler state for the textures
@@ -127,7 +137,17 @@ void Game::Init()
 
 	device->CreateSamplerState(&sd, &sampler);
 
+	//Create states for sky rendering
+	D3D11_RASTERIZER_DESC rs = {};
+	rs.CullMode = D3D11_CULL_FRONT;
+	rs.FillMode = D3D11_FILL_SOLID;
+	device->CreateRasterizerState(&rs, &skyRasterState);
 
+	D3D11_DEPTH_STENCIL_DESC ds = {};
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&ds, &skyDepthState);
 
 	//Render the scene to texture.
 	//Down sample the texture to to half its size or less.
@@ -211,6 +231,12 @@ void Game::LoadShaders()
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
+	skyPS = new SimplePixelShader(device, context);
+	skyPS->LoadShaderFile(L"SkyPS.cso");
+
+	skyVS = new SimpleVertexShader(device, context);
+	skyVS->LoadShaderFile(L"SkyVS.cso");
+
 	ppVS = new SimpleVertexShader(device, context);
 	ppVS->LoadShaderFile(L"QuadVS.cso");
 
@@ -284,17 +310,16 @@ void Game::CreateMesh()
 	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
 	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
+
 	//entities
 	sphereEntity = new GameEntity(sphereMesh, slateMaterial);
-	cubeEntity = new GameEntity(cubeMesh, lavaMaterial);
 	earthEntity = new GameEntity(earthMesh, earthMaterial);
+	
 
 	//srand(time(NULL));
 	for (int i = 0; i < 5; ++i)
 	{
 		entities.push_back(new GameEntity(sphereMesh, slateMaterial));
-		//entities[i]->SetTranslation(XMFLOAT3(rand() % 2, 0, rand() % 30 + 1));
-		
 	}
 
 	entities[0]->SetTranslation(XMFLOAT3(-3.0, 0.0, 1.0));
@@ -303,6 +328,40 @@ void Game::CreateMesh()
 	entities[3]->SetTranslation(XMFLOAT3(1.0, 0.0, 5.0));
 	entities[4]->SetTranslation(XMFLOAT3(2.0, 0.0, 7.0));
 
+
+}
+
+void Game::DrawSky()
+{
+	ID3D11Buffer* skyVB = cubeMesh->GetVertexBuffer();
+	ID3D11Buffer* skyIB = cubeMesh->GetIndexBuffer();
+
+	//set buffers
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+	//set up sky shaders
+	//no need for world matrix
+	skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
+	skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	skyVS->CopyAllBufferData();
+	skyVS->SetShader();
+
+	skyPS->SetShaderResourceView("SkyTexture", skySRV);
+	skyPS->SetSamplerState("basicSampler", sampler);
+	skyPS->SetShader();
+
+	//set up render states necessary for the sky
+	context->RSSetState(skyRasterState);
+	context->OMSetDepthStencilState(skyDepthState, 0);
+	context->DrawIndexed(cubeMesh->GetIndexCount(), 0, 0);
+
+	// When done rendering, reset any and all states for the next frame
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
 
 }
 
@@ -317,8 +376,6 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
 
 	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler);
-	//cubeEntity->PrepareMaterial(viewMatrix, projectionMatrix, slateSRV, sampler);
-
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
 	pixelShader->CopyAllBufferData();
@@ -354,14 +411,9 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	cubeEntity->SetTranslation(XMFLOAT3(1, 0, 0));
-	
-	cubeEntity->SetScale(XMFLOAT3(1, 1, 1));
-
 	earthEntity->SetScale(XMFLOAT3(1, 1, 1));
 	earthEntity->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	//earthEntity->Rotate(0.0,  deltaTime * 0.25f, 0.0);
-	
+
 	earthEntity->SetTranslation(XMFLOAT3(2, 0, 0));
 	
 }
@@ -396,6 +448,8 @@ void Game::Draw(float deltaTime, float TotalTime)
 	}
 	//DrawEntity(cubeEntity);
 	DrawEntity(earthEntity);
+
+	DrawSky();
 
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);

@@ -41,18 +41,19 @@ private:
 	void LoadShaders();
 	void CreateMatrices();
 	void CreateMesh();
+	void DrawSky();
 
 
 
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
 
-	////skybox
-	//ID3D11ShaderResourceView* skySRV;
-	//SimpleVertexShader* skyVS;
-	//SimplePixelShader* skyPS;
-	//ID3D11RasterizerState* skyRasterState;
-	//ID3D11DepthStencilState* skyDepthState;
+	//skybox
+	ID3D11ShaderResourceView* skySRV;
+	SimpleVertexShader* skyVS;
+	SimplePixelShader* skyPS;
+	ID3D11RasterizerState* skyRasterState;
+	ID3D11DepthStencilState* skyDepthState;
 
 	//textures
 	ID3D11SamplerState* sampler;
@@ -79,15 +80,18 @@ private:
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
 
-	std::vector<GameEntity*> entities;
+
 	//meshes
 	Mesh* sphereMesh;
 	Mesh* earthMesh;
 	Mesh* cubeMesh;
+	std::vector<Mesh*> meshes;
+
 	//entities
 	GameEntity* sphereEntity;
 	GameEntity* cubeEntity;
 	GameEntity* earthEntity;
+	std::vector<GameEntity*> entities;
 
 	Material* lavaMaterial;
 	Material* slateMaterial;
