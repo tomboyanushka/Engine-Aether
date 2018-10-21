@@ -72,34 +72,37 @@ Game::~Game()
 	DoFSRV->Release();
 	depthBufferSRV->Release();
 
-	rectSRV->Release();
-	rectNormalSRV->Release();
 	slateSRV->Release();
 	slateNormalSRV->Release();
 	earthSRV->Release();
 	earthNormalSRV->Release();
+	marsSRV->Release();
+	marsNormalSRV->Release();
+	neptuneSRV->Release();
+	neptuneNormalSRV->Release();
 	skySRV->Release();
 	sampler->Release();
 
 	skyDepthState->Release();
 	skyRasterState->Release();
 
-	delete lavaMaterial;
 	delete slateMaterial;
 	delete earthMaterial;
+	delete marsMaterial;
+	delete neptuneMaterial;
 
-	delete sphereEntity;
-	delete earthEntity;
+	delete earthMesh;
+	delete marsMesh;
+	delete neptuneMesh;
+	delete skyMesh;
+	delete camera;
 
 	for (auto e : entities)
 	{
 		delete e;
 	}
 
-	delete earthMesh;
-	delete cubeMesh;
-	delete sphereMesh;
-	delete camera;
+	
 
 }
 
@@ -114,12 +117,12 @@ void Game::Init()
 	//loading textures and normal maps
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slateNormal.tif", 0, &slateNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rect.jpg", 0, &rectSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rectNormal.jpg", 0, &rectNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/mars.jpg", 0, &marsSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/marsNormal.jpg", 0, &marsNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptune.jpg", 0, &neptuneSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptuneNormal.jpg", 0, &neptuneNormalSRV);
 
 	//Load skybox texture from DDS file
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &skySRV);
@@ -307,43 +310,33 @@ void Game::CreateMesh()
 	marsMesh = new Mesh();
 	marsMesh->CreateBasicGeometry(marsverts.data(), (UINT)marsverts.size(), marsindices.data(), (UINT)marsindices.size(), device);
 
+	loader.LoadFile("../Assets/Models/Neptune.obj");
+	auto neptuneverts = MapObjlToVertex(loader.LoadedVertices);
+	auto neptuneindices = loader.LoadedMeshes[0].Indices;
+	neptuneMesh = new Mesh();
+	neptuneMesh->CreateBasicGeometry(neptuneverts.data(), (UINT)neptuneverts.size(), neptuneindices.data(), (UINT)neptuneindices.size(), device);
+
+	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
 	//materials
-	lavaMaterial = new Material(vertexShader, pixelShader, rectSRV, rectNormalSRV, sampler);
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, sampler);
 	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, sampler);
-
-	//meshes
-	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
-	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
-
-
-	//entities
-	sphereEntity = new GameEntity(sphereMesh, slateMaterial);
-	earthEntity = new GameEntity(earthMesh, earthMaterial);
-	marsEntity = new GameEntity(marsMesh, marsMaterial);
+	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, sampler);
 	
 
-	//srand(time(NULL));
-	for (int i = 0; i < 5; ++i)
-	{
-		entities.push_back(new GameEntity(sphereMesh, slateMaterial));
-	}
-
-	entities[0]->SetTranslation(XMFLOAT3(-3.0, 0.0, 1.0));
-	entities[1]->SetTranslation(XMFLOAT3(-5.0, 0.0, 2.0));
-	entities[2]->SetTranslation(XMFLOAT3(-4.0, 0.0, 4.0));
-	entities[3]->SetTranslation(XMFLOAT3(1.0, 0.0, 5.0));
-	entities[4]->SetTranslation(XMFLOAT3(2.0, 0.0, 7.0));
-
+	//entities
+	entities.push_back(new GameEntity(earthMesh, earthMaterial));
+	entities.push_back(new GameEntity(marsMesh, marsMaterial));
+	entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
 
 }
 
 void Game::DrawSky()
 {
-	ID3D11Buffer* skyVB = cubeMesh->GetVertexBuffer();
-	ID3D11Buffer* skyIB = cubeMesh->GetIndexBuffer();
+	
+	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
+	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
 
 	//set buffers
 	UINT stride = sizeof(Vertex);
@@ -366,7 +359,7 @@ void Game::DrawSky()
 	//set up render states necessary for the sky
 	context->RSSetState(skyRasterState);
 	context->OMSetDepthStencilState(skyDepthState, 0);
-	context->DrawIndexed(cubeMesh->GetIndexCount(), 0, 0);
+	context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
 
 	// When done rendering, reset any and all states for the next frame
 	context->RSSetState(0);
@@ -511,11 +504,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	earthEntity->SetScale(XMFLOAT3(1, 1, 1));
-	earthEntity->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
+	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
+	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
+	entities[0]->SetTranslation(XMFLOAT3(2, 0, 0));
 
-	earthEntity->SetTranslation(XMFLOAT3(2, 0, 0));
-	marsEntity->SetTranslation(XMFLOAT3(1, 0, 2));
+	entities[1]->SetTranslation(XMFLOAT3(1, 0, 2));
 	
 }
 
@@ -542,14 +535,11 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	DrawEntity(sphereEntity);
+
 	for (auto e : entities)
 	{
 		DrawEntity(e);
 	}
-	
-	DrawEntity(earthEntity);
-	DrawEntity(marsEntity);
 
 	DrawSky();
 

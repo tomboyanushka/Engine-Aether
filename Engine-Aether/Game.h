@@ -60,12 +60,12 @@ private:
 
 	//textures
 	ID3D11SamplerState* sampler;
-	ID3D11ShaderResourceView* rectSRV;
-	ID3D11ShaderResourceView* rectNormalSRV;
 	ID3D11ShaderResourceView* earthSRV;
 	ID3D11ShaderResourceView* earthNormalSRV;
 	ID3D11ShaderResourceView* marsSRV;
 	ID3D11ShaderResourceView* marsNormalSRV;
+	ID3D11ShaderResourceView* neptuneSRV;
+	ID3D11ShaderResourceView* neptuneNormalSRV;
 	ID3D11ShaderResourceView* slateSRV;
 	ID3D11ShaderResourceView* slateNormalSRV;
 
@@ -85,27 +85,19 @@ private:
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
 
-
 	//meshes
-	Mesh* sphereMesh;
 	Mesh* earthMesh;
 	Mesh* marsMesh;
-	Mesh* cubeMesh;
+	Mesh* neptuneMesh;
+	Mesh* skyMesh;
 
 	//entities
-	GameEntity* sphereEntity;
-	GameEntity* cubeEntity;
-	GameEntity* earthEntity;
-	GameEntity* marsEntity;
 	std::vector<GameEntity*> entities;
 
-	Material* lavaMaterial;
 	Material* slateMaterial;
 	Material* earthMaterial;
-	//Material* earthNormal;
 	Material* marsMaterial;
-	//Material* marsNormal;
-
+	Material* neptuneMaterial;
 
 	Camera* camera;
 
