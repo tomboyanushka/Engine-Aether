@@ -42,6 +42,9 @@ private:
 	void CreateMatrices();
 	void CreateMesh();
 	void DrawSky();
+	void DrawBlur();
+	void DrawCircleofConfusion();
+	void DrawDepthofField();
 
 
 
@@ -61,6 +64,8 @@ private:
 	ID3D11ShaderResourceView* rectNormalSRV;
 	ID3D11ShaderResourceView* earthSRV;
 	ID3D11ShaderResourceView* earthNormalSRV;
+	ID3D11ShaderResourceView* marsSRV;
+	ID3D11ShaderResourceView* marsNormalSRV;
 	ID3D11ShaderResourceView* slateSRV;
 	ID3D11ShaderResourceView* slateNormalSRV;
 
@@ -84,19 +89,22 @@ private:
 	//meshes
 	Mesh* sphereMesh;
 	Mesh* earthMesh;
+	Mesh* marsMesh;
 	Mesh* cubeMesh;
-	std::vector<Mesh*> meshes;
 
 	//entities
 	GameEntity* sphereEntity;
 	GameEntity* cubeEntity;
 	GameEntity* earthEntity;
+	GameEntity* marsEntity;
 	std::vector<GameEntity*> entities;
 
 	Material* lavaMaterial;
 	Material* slateMaterial;
 	Material* earthMaterial;
-	Material* earthNormal;
+	//Material* earthNormal;
+	Material* marsMaterial;
+	//Material* marsNormal;
 
 
 	Camera* camera;

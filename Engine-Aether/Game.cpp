@@ -118,6 +118,8 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/rectNormal.jpg", 0, &rectNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/mars.jpg", 0, &marsSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/marsNormal.jpg", 0, &marsNormalSRV);
 
 	//Load skybox texture from DDS file
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &skySRV);
@@ -294,17 +296,23 @@ void Game::CreateMesh()
 {
 	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
 	loader.LoadFile("../../Assets/Models/sphere.obj");
-
 	auto verts = MapObjlToVertex(loader.LoadedVertices);
 	auto indices = loader.LoadedMeshes[0].Indices;
 	earthMesh = new Mesh();
 	earthMesh->CreateBasicGeometry(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
+
+	loader.LoadFile("../Assets/Models/Mars.obj");
+	auto marsverts = MapObjlToVertex(loader.LoadedVertices);
+	auto marsindices = loader.LoadedMeshes[0].Indices;
+	marsMesh = new Mesh();
+	marsMesh->CreateBasicGeometry(marsverts.data(), (UINT)marsverts.size(), marsindices.data(), (UINT)marsindices.size(), device);
 
 
 	//materials
 	lavaMaterial = new Material(vertexShader, pixelShader, rectSRV, rectNormalSRV, sampler);
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, sampler);
 
 	//meshes
 	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
@@ -314,6 +322,7 @@ void Game::CreateMesh()
 	//entities
 	sphereEntity = new GameEntity(sphereMesh, slateMaterial);
 	earthEntity = new GameEntity(earthMesh, earthMaterial);
+	marsEntity = new GameEntity(marsMesh, marsMaterial);
 	
 
 	//srand(time(NULL));
@@ -363,6 +372,97 @@ void Game::DrawSky()
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 
+}
+
+void Game::DrawBlur()
+{
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &blurRTV, 0);
+
+	//post process shaders
+	ppVS->SetShader();
+	blurPS->SetShader();
+
+	blurPS->SetShaderResourceView("Pixels", ppSRV);
+	blurPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
+	blurPS->SetSamplerState("Sampler", sampler);
+	blurPS->SetFloat("blurAmount", 5);
+	blurPS->SetFloat("pixelWidth", 1.0f / width);
+	blurPS->SetFloat("pixelHeight", 1.0f / height);
+	blurPS->SetMatrix4x4("viewMatrixInv", camera->GetViewMatrixInverse());
+	blurPS->SetMatrix4x4("projMatrixInv", camera->GetProjectionMatrixInverse());
+	blurPS->SetFloat("focusPlaneZ", focusZ);
+	blurPS->SetFloat("zFar", 100.0f);
+	blurPS->SetFloat("zNear", 0.1f);
+	blurPS->CopyAllBufferData();
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	ID3D11Buffer* nothing = 0;
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
+}
+
+void Game::DrawCircleofConfusion()
+{
+	//setting CoCRTV
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &CoCRTV, 0);
+
+	CoCVS->SetShader();
+	CoCPS->SetShader();
+
+	CoCPS->SetShaderResourceView("Pixels", ppSRV);
+	CoCPS->SetSamplerState("Sampler", sampler);
+	CoCPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
+	CoCPS->SetFloat("focusPlaneZ", focusZ);
+	CoCPS->SetFloat("scale", 1);
+	CoCPS->SetFloat("zFar", 100.0f);
+	CoCPS->SetFloat("zNear", 0.1f);
+	CoCPS->CopyAllBufferData();
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+
+	ID3D11Buffer* nothing = 0;
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
+
+}
+
+void Game::DrawDepthofField()
+{
+	//setting DOFRTV
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	context->OMSetRenderTargets(1, &DoFRTV, 0);
+
+	ppVS->SetShader();
+	DoFPS->SetShader();
+
+	DoFPS->SetShaderResourceView("Pixels", ppSRV);
+	DoFPS->SetSamplerState("Sampler", sampler);
+	DoFPS->SetShaderResourceView("BlurTexture", blurSRV);
+	DoFPS->SetShaderResourceView("Radius", CoCSRV);
+
+	DoFPS->CopyAllBufferData();
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+
+	ID3D11Buffer* nothing = 0;
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
@@ -415,6 +515,7 @@ void Game::Update(float deltaTime, float totalTime)
 	earthEntity->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
 
 	earthEntity->SetTranslation(XMFLOAT3(2, 0, 0));
+	marsEntity->SetTranslation(XMFLOAT3(1, 0, 2));
 	
 }
 
@@ -446,83 +547,17 @@ void Game::Draw(float deltaTime, float TotalTime)
 	{
 		DrawEntity(e);
 	}
-	//DrawEntity(cubeEntity);
+	
 	DrawEntity(earthEntity);
+	DrawEntity(marsEntity);
 
 	DrawSky();
 
-	context->RSSetState(0);
-	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &blurRTV, 0);
+	DrawBlur();
 
-	//post process shaders
-	ppVS->SetShader();
-	blurPS->SetShader();
+	DrawCircleofConfusion();
 
-	blurPS->SetShaderResourceView("Pixels", ppSRV);
-	blurPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	blurPS->SetSamplerState("Sampler", sampler);
-	blurPS->SetFloat("blurAmount", 5);
-	blurPS->SetFloat("pixelWidth", 1.0f / width);
-	blurPS->SetFloat("pixelHeight", 1.0f / height);
-	blurPS->SetMatrix4x4("viewMatrixInv", camera->GetViewMatrixInverse());
-	blurPS->SetMatrix4x4("projMatrixInv", camera->GetProjectionMatrixInverse());
-	blurPS->SetFloat("focusPlaneZ", focusZ);
-	blurPS->SetFloat("zFar", 100.0f);
-	blurPS->SetFloat("zNear", 0.1f);
-	blurPS->CopyAllBufferData();
-
-	ID3D11Buffer* nothing = 0;
-	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
-	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
-
-	context->Draw(3, 0);
-
-	//setting CoCRTV
-	context->RSSetState(0);
-	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &CoCRTV, 0);
-
-	CoCVS->SetShader();
-	CoCPS->SetShader();
-
-	CoCPS->SetShaderResourceView("Pixels", ppSRV);
-	CoCPS->SetSamplerState("Sampler", sampler);
-	CoCPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	CoCPS->SetFloat("focusPlaneZ", focusZ);
-	CoCPS->SetFloat("scale", 1);
-	CoCPS->SetFloat("zFar", 100.0f);
-	CoCPS->SetFloat("zNear", 0.1f);
-	//CoCPS->SetFloat2("projectionConstants", XMFLOAT2(0.1f, 100.0f));
-	CoCPS->CopyAllBufferData();
-
-	nothing = 0;
-	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
-	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
-
-	context->Draw(3, 0);
-
-
-	//setting DOFRTV
-	context->RSSetState(0);
-	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &DoFRTV, 0);
-
-	ppVS->SetShader();
-	DoFPS->SetShader();
-
-	DoFPS->SetShaderResourceView("Pixels", ppSRV);
-	DoFPS->SetSamplerState("Sampler", sampler);
-	DoFPS->SetShaderResourceView("BlurTexture", blurSRV);
-	DoFPS->SetShaderResourceView("Radius", CoCSRV);
-
-	DoFPS->CopyAllBufferData();
-
-	nothing = 0;
-	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
-	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
-
-	context->Draw(3, 0);
+	DrawDepthofField();
 
 	//setting backbufferRTV
 	context->RSSetState(0);
