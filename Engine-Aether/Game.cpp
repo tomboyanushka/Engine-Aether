@@ -80,6 +80,8 @@ Game::~Game()
 	marsNormalSRV->Release();
 	neptuneSRV->Release();
 	neptuneNormalSRV->Release();
+	saturnSRV->Release();
+	saturnNormalSRV->Release();
 	skySRV->Release();
 	sampler->Release();
 
@@ -90,10 +92,12 @@ Game::~Game()
 	delete earthMaterial;
 	delete marsMaterial;
 	delete neptuneMaterial;
+	delete saturnMaterial;
 
 	delete earthMesh;
 	delete marsMesh;
 	delete neptuneMesh;
+	delete saturnMesh;
 	delete skyMesh;
 	delete camera;
 
@@ -123,6 +127,10 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/marsNormal.jpg", 0, &marsNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptune.jpg", 0, &neptuneSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptuneNormal.jpg", 0, &neptuneNormalSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Saturn.jpg", 0, &saturnSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/SaturnNormal.png", 0, &saturnNormalSRV);
+
+
 
 	//Load skybox texture from DDS file
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &skySRV);
@@ -317,18 +325,25 @@ void Game::CreateMesh()
 	neptuneMesh->CreateBasicGeometry(neptuneverts.data(), (UINT)neptuneverts.size(), neptuneindices.data(), (UINT)neptuneindices.size(), device);
 
 	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
+	loader.LoadFile("../Assets/Models/Saturn.obj");
+	auto saturnverts = MapObjlToVertex(loader.LoadedVertices);
+	auto saturnindices = loader.LoadedMeshes[0].Indices;
+	saturnMesh = new Mesh();
+	saturnMesh->CreateBasicGeometry(saturnverts.data(), (UINT)saturnverts.size(), saturnindices.data(), (UINT)saturnindices.size(), device);
 
 	//materials
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, sampler);
 	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, sampler);
 	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, sampler);
+	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, sampler);
 	
 
 	//entities
 	entities.push_back(new GameEntity(earthMesh, earthMaterial));
 	entities.push_back(new GameEntity(marsMesh, marsMaterial));
 	entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
+	entities.push_back(new GameEntity(saturnMesh, saturnMaterial));
 
 }
 
@@ -509,6 +524,7 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[0]->SetTranslation(XMFLOAT3(2, 0, 0));
 
 	entities[1]->SetTranslation(XMFLOAT3(1, 0, 2));
+	entities[3]->SetTranslation(XMFLOAT3(-1, 0, 1));
 	
 }
 

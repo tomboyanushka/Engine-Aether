@@ -66,6 +66,8 @@ private:
 	ID3D11ShaderResourceView* marsNormalSRV;
 	ID3D11ShaderResourceView* neptuneSRV;
 	ID3D11ShaderResourceView* neptuneNormalSRV;
+	ID3D11ShaderResourceView* saturnSRV;
+	ID3D11ShaderResourceView* saturnNormalSRV;
 	ID3D11ShaderResourceView* slateSRV;
 	ID3D11ShaderResourceView* slateNormalSRV;
 
@@ -89,6 +91,7 @@ private:
 	Mesh* earthMesh;
 	Mesh* marsMesh;
 	Mesh* neptuneMesh;
+	Mesh* saturnMesh;
 	Mesh* skyMesh;
 
 	//entities
@@ -98,6 +101,7 @@ private:
 	Material* earthMaterial;
 	Material* marsMaterial;
 	Material* neptuneMaterial;
+	Material* saturnMaterial;
 
 	Camera* camera;
 
