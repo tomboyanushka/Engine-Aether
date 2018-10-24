@@ -27,6 +27,7 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 	float2 uv           : TEXCOORD;
 	float3 tangent		: TANGENT;
+	float3 worldPos		: POSITION; // The world position of this vertex
 	float linearZ		: LINEARZ;
 };
 
@@ -50,6 +51,10 @@ VertexToPixel main(VertexShaderInput input)
 
 	//normal to world space
 	output.normal = mul(input.normal, (float3x3)world);
+
+	// Calculate the world position of this vertex (to be used
+	// in the pixel shader when we do point/spot lights)
+	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 
 	// Also convert the tangent from LOCAL to WORLD space
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));

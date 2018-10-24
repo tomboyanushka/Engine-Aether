@@ -82,6 +82,10 @@ Game::~Game()
 	neptuneNormalSRV->Release();
 	saturnSRV->Release();
 	saturnNormalSRV->Release();
+	scratchedA->Release();
+	scratchedM->Release();
+	scratchedN->Release();
+	scratchedR->Release();
 	skySRV->Release();
 	sampler->Release();
 
@@ -93,11 +97,13 @@ Game::~Game()
 	delete marsMaterial;
 	delete neptuneMaterial;
 	delete saturnMaterial;
+	delete sphereMaterial;
 
 	delete earthMesh;
 	delete marsMesh;
 	delete neptuneMesh;
 	delete saturnMesh;
+	delete sphereMesh;
 	delete skyMesh;
 	delete camera;
 
@@ -129,6 +135,11 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptuneNormal.jpg", 0, &neptuneNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Saturn.jpg", 0, &saturnSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/SaturnNormal.png", 0, &saturnNormalSRV);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_albedo.png", 0, &scratchedA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_normals.png", 0, &scratchedN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_roughness.png", 0, &scratchedR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_metal.png", 0, &scratchedM);
 
 
 
@@ -324,19 +335,29 @@ void Game::CreateMesh()
 	neptuneMesh = new Mesh();
 	neptuneMesh->CreateBasicGeometry(neptuneverts.data(), (UINT)neptuneverts.size(), neptuneindices.data(), (UINT)neptuneindices.size(), device);
 
-	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
+
 	loader.LoadFile("../Assets/Models/Saturn.obj");
 	auto saturnverts = MapObjlToVertex(loader.LoadedVertices);
 	auto saturnindices = loader.LoadedMeshes[0].Indices;
 	saturnMesh = new Mesh();
 	saturnMesh->CreateBasicGeometry(saturnverts.data(), (UINT)saturnverts.size(), saturnindices.data(), (UINT)saturnindices.size(), device);
 
+	loader.LoadFile("../../Assets/Models/sphere.obj");
+	auto sphereverts = MapObjlToVertex(loader.LoadedVertices);
+	auto sphereindices = loader.LoadedMeshes[0].Indices;
+	sphereMesh = new Mesh();
+	sphereMesh->CreateBasicGeometry(sphereverts.data(), (UINT)sphereverts.size(), sphereindices.data(), (UINT)sphereindices.size(), device);
+
+	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
+
 	//materials
-	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, sampler);
-	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, sampler);
-	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, sampler);
-	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, sampler);
-	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, sampler);
+	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
+	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, 0, 0, sampler);
+	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
+	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, 0, 0, sampler);
+	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
+
 	
 
 	//entities
@@ -344,6 +365,7 @@ void Game::CreateMesh()
 	entities.push_back(new GameEntity(marsMesh, marsMaterial));
 	entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
 	entities.push_back(new GameEntity(saturnMesh, saturnMaterial));
+	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
 
 }
 
@@ -368,7 +390,7 @@ void Game::DrawSky()
 	skyVS->SetShader();
 
 	skyPS->SetShaderResourceView("SkyTexture", skySRV);
-	skyPS->SetSamplerState("basicSampler", sampler);
+	skyPS->SetSamplerState("BasicSampler", sampler);
 	skyPS->SetShader();
 
 	//set up render states necessary for the sky
@@ -482,6 +504,7 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 
 	pixelShader->SetData("light1", &light1, sizeof(DirectionalLight));
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
+	pixelShader->SetFloat3("CameraPosition", camera->GetPosition());
 
 	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler);
 	vertexShader->CopyAllBufferData();
@@ -525,6 +548,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	entities[1]->SetTranslation(XMFLOAT3(1, 0, 2));
 	entities[3]->SetTranslation(XMFLOAT3(-1, 0, 1));
+	entities[4]->SetTranslation(XMFLOAT3(-2, 0, 4));
 	
 }
 

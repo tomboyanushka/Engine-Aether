@@ -281,11 +281,6 @@ void Mesh::CalculateTangents(Vertex * vertices, UINT vertexCount, UINT * indices
 	delete[] tan1;
 }
 
-//Mesh::Mesh(Vertex * vertices, UINT vertexCount, UINT * indices, UINT indexCount, ID3D11Device * device)
-//{
-//	CreateBasicGeometry(vertices, vertexCount, indices, indexCount, device);
-//}
-
 
 
 

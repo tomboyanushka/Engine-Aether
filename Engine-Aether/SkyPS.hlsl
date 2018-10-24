@@ -7,11 +7,11 @@ struct VertexToPixel
 
 // Texture-related variables
 TextureCube SkyTexture		: register(t0);
-SamplerState basicSampler	: register(s0);
+SamplerState BasicSampler	: register(s0);
 
 
 // Entry point for this pixel shader
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	return SkyTexture.Sample(basicSampler, input.sampleDir);
+	return SkyTexture.Sample(BasicSampler, input.sampleDir);
 }

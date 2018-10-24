@@ -103,9 +103,12 @@ void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, I
 	auto pixelShader = materialObject->GetPixelShader();
 
 	//first SRV, then sample it
-	pixelShader->SetShaderResourceView("someTexture", materialObject->GetSRV());
+	pixelShader->SetShaderResourceView("AlbedoTexture", materialObject->GetAlbedoSRV());
 	pixelShader->SetShaderResourceView("NormalTexture", materialObject->GetNormalSRV());
-	pixelShader->SetSamplerState("basicSampler", objSampler);
+	pixelShader->SetShaderResourceView("RoughnessTexture", materialObject->GetRoughnessSRV());
+	pixelShader->SetShaderResourceView("MetalTexture", materialObject->GetMetalSRV());
+
+	pixelShader->SetSamplerState("BasicSampler", objSampler);
 
 	vertexShader->SetMatrix4x4("World", GetMatrix());
 	vertexShader->SetMatrix4x4("View", viewMatrix);
