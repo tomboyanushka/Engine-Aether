@@ -122,9 +122,9 @@ void Game::Init()
 	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.8f) };
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	//color position range intensity
-	light3 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(+1.0f, +0.0f, +5.0f), float (5), float (1) };
-	//color position range intensity spotfalloff
-	light4 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(+1.0f, +0.0f, +5.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), float(5), float(1), float (5) };
+	light3 = { XMFLOAT4(+0.1f, +0.8f, +0.0f, 1.0f), XMFLOAT3(+1.0f, +0.0f, +5.0f), float (5), float (1) };
+	//color position direction range intensity spotfalloff
+	light4 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), float(10), float(1), float (10) };
 	LoadShaders();
 	CreateMatrices();
 
@@ -439,6 +439,9 @@ void Game::DrawBlur()
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
 	context->Draw(3, 0);
+	blurPS->SetShaderResourceView("Pixels", 0);
+	blurPS->SetShaderResourceView("DepthBuffer", 0);
+
 }
 
 void Game::DrawCircleofConfusion()
@@ -469,7 +472,8 @@ void Game::DrawCircleofConfusion()
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
 	context->Draw(3, 0);
-
+	CoCPS->SetShaderResourceView("Pixels", 0);
+	CoCPS->SetShaderResourceView("DepthBuffer", 0);
 }
 
 void Game::DrawDepthofField()
@@ -497,6 +501,9 @@ void Game::DrawDepthofField()
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
 	context->Draw(3, 0);
+	DoFPS->SetShaderResourceView("Pixels", 0);
+	DoFPS->SetShaderResourceView("BlurTexture", 0);
+	DoFPS->SetShaderResourceView("Radius", 0);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
@@ -508,6 +515,8 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 
 	pixelShader->SetData("light1", &light1, sizeof(DirectionalLight));
 	pixelShader->SetData("light2", &light2, sizeof(DirectionalLight));
+	pixelShader->SetData("light3", &light3, sizeof(PointLight));
+	pixelShader->SetData("light4", &light4, sizeof(SpotLight));
 	pixelShader->SetFloat3("CameraPosition", camera->GetPosition());
 
 	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler);
@@ -608,6 +617,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->Draw(3, 0);
 
 	swapChain->Present(0, 0);
+	ppPS->SetShaderResourceView("Pixels", 0);
 
 }
 
