@@ -31,6 +31,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float3 result = lerp(sharp, blurred, abs(normRadius));
 
-	return float4(result, 1);
+	return float4(sharp, 1);
 
 }

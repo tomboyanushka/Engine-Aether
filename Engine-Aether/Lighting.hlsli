@@ -12,10 +12,38 @@ struct DirectionalLight
 	float3 Direction;
 	float Intensity;
 };
+struct PointLight
+{
+	float4 Color;
+	float3 Position;
+	float Range;
+	float Intensity;
+};
+
+struct SpotLight
+{
+	float4 Color;
+	float3 Position;
+	float3 Direction;
+	float Range;
+	float Intensity;
+	float SpotFalloff;
+};
 
 float DiffusePBR(float3 normal, float3 dirToLight)
 {
 	return saturate(dot(normal, dirToLight));
+}
+
+float Attenuate(float3 lightPos, float3 worldPos, float lightRange)
+{
+	float dist = distance(lightPos, worldPos);
+
+	// Ranged-based attenuation
+	float att = saturate(1.0f - (dist * dist / (lightRange * lightRange)));
+
+	// Soft falloff
+	return att * att;
 }
 
 // GGX (Trowbridge-Reitz)
@@ -130,14 +158,14 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 	return (balancedDiff * surfaceColor + spec) /* light.Intensity*/ * light.DiffuseColor;
 }
 
-float3 PointLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
 {
 	// Calc light direction
 	float3 toLight = normalize(light.Position - worldPos);
 	float3 toCam = normalize(camPos - worldPos);
 
 	// Calculate the light amounts
-	float atten = Attenuate(light, worldPos);
+	float atten = Attenuate(light.Position, worldPos, light.Range);
 	float diff = DiffusePBR(normal, toLight);
 	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
 
@@ -149,13 +177,28 @@ float3 PointLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos,
 	return (balancedDiff * surfaceColor + spec) * atten * light.Intensity * light.Color;
 }
 
-float3 SpotLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
 {
-	// Calculate the spot falloff
 	float3 toLight = normalize(light.Position - worldPos);
+	// Calculate the spot falloff
 	float penumbra = pow(saturate(dot(-toLight, light.Direction)), light.SpotFalloff);
+	// Calc light direction
+	
+	float3 toCam = normalize(camPos - worldPos);
+
+	// Calculate the light amounts
+	float atten = Attenuate(light.Position, worldPos, light.Range);
+	float diff = DiffusePBR(normal, toLight);
+	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
+
+	// Calculate diffuse with energy conservation
+	// (Reflected light doesn't diffuse)
+	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
+
+	// Combine
+	float3 final = (balancedDiff * surfaceColor + spec) * atten * light.Intensity * light.Color;
 
 	// Combine with the point light calculation
 	// Note: This could be optimized a bit
-	return PointLightPBR(light, normal, worldPos, camPos, roughness, metalness, surfaceColor, specularColor) * penumbra;
+	return final * penumbra;
 }

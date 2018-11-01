@@ -110,6 +110,8 @@ private:
 
 	DirectionalLight light1;
 	DirectionalLight light2;
+	PointLight light3;
+	SpotLight light4;
 
 	void DrawEntity(GameEntity* gameEntityObject);
 
