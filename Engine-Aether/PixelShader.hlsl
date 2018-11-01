@@ -12,6 +12,9 @@ cbuffer externalData : register(b0)
 {
 	DirectionalLight light1;
 	DirectionalLight light2;
+	PointLight light3;
+	SpotLight light4;
+
 	float3 CameraPosition;
 };
 
@@ -70,37 +73,23 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//roughness = lerp(0.2f, roughness, 0.5f);
 
 	// Sample the metal map
-	float metal = MetalTexture.Sample(BasicSampler, input.uv).r;
+	float metalness = MetalTexture.Sample(BasicSampler, input.uv).r;
 	//metal = lerp(0.0f, metal, 0.5f);
 
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
 	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metal);
-
-	////for the normal calculation
-	////Calculate the normalized direction to the light
-	////Negate the light’s direction, normalize that and store in a float3 variable
-	////for light 1
-	//float3 dir = -normalize(light1.Direction);
-	//float dirNdotL = dot(input.normal, dir);
-	//dirNdotL = saturate(dirNdotL); //clamps it between 0 and 1
-
-	////final calculation
-	////return light.DiffuseColor * dirNdotL + light.AmbientColor;// Dir light calc
-
-	////for light 2
-	//float3 dir2 = -normalize(light2.Direction);
-	//float dirNdotL2 = dot(input.normal, dir2);
-	//dirNdotL2 = saturate(dirNdotL2);
 
 	//float3 lightOne = surfaceColor.rgb * (light1.DiffuseColor * dirNdotL + light1.AmbientColor);
 	//float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
 	// Total color for this pixel
 	float3 totalColor = float3(0, 0, 0);
 	//LIGHT_TYPE_DIRECTIONAL:
-	totalColor = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metal, surfaceColor.rgb, specColor);
+	totalColor = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	totalColor += PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	totalColor += SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 
 	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;
-	float3 r = lerp(totalColor, pow(totalColor, 1.0 / 2.2), 0.5f);
-	return float4(r, packedValue);
+	float3 gammaCorrected = lerp(totalColor, pow(totalColor, 1.0 / 2.2), 0.4f);
+	return float4(gammaCorrected, packedValue);
 }

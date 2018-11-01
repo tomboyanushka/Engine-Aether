@@ -129,3 +129,33 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 	// Combine amount with 
 	return (balancedDiff * surfaceColor + spec) /* light.Intensity*/ * light.DiffuseColor;
 }
+
+float3 PointLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+{
+	// Calc light direction
+	float3 toLight = normalize(light.Position - worldPos);
+	float3 toCam = normalize(camPos - worldPos);
+
+	// Calculate the light amounts
+	float atten = Attenuate(light, worldPos);
+	float diff = DiffusePBR(normal, toLight);
+	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
+
+	// Calculate diffuse with energy conservation
+	// (Reflected light doesn't diffuse)
+	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
+
+	// Combine
+	return (balancedDiff * surfaceColor + spec) * atten * light.Intensity * light.Color;
+}
+
+float3 SpotLightPBR(Light light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+{
+	// Calculate the spot falloff
+	float3 toLight = normalize(light.Position - worldPos);
+	float penumbra = pow(saturate(dot(-toLight, light.Direction)), light.SpotFalloff);
+
+	// Combine with the point light calculation
+	// Note: This could be optimized a bit
+	return PointLightPBR(light, normal, worldPos, camPos, roughness, metalness, surfaceColor, specularColor) * penumbra;
+}
