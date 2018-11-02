@@ -86,6 +86,10 @@ Game::~Game()
 	scratchedM->Release();
 	scratchedN->Release();
 	scratchedR->Release();
+	cobbleA->Release();
+	cobbleM->Release();
+	cobbleN->Release();
+	cobbleR->Release();
 	skySRV->Release();
 	sampler->Release();
 
@@ -98,12 +102,14 @@ Game::~Game()
 	delete neptuneMaterial;
 	delete saturnMaterial;
 	delete sphereMaterial;
+	delete cubeMaterial;
 
 	delete earthMesh;
 	delete marsMesh;
 	delete neptuneMesh;
 	delete saturnMesh;
 	delete sphereMesh;
+	delete cubeMesh;
 	delete skyMesh;
 	delete camera;
 
@@ -122,9 +128,9 @@ void Game::Init()
 	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.8f) };
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	//color position range intensity
-	light3 = { XMFLOAT4(+0.1f, +0.8f, +0.0f, 1.0f), XMFLOAT3(+1.0f, +0.0f, +5.0f), float (5), float (1) };
+	light3 = { XMFLOAT4(+0.1f, +0.8f, +0.0f, 1.0f), XMFLOAT3(-1.0f, +0.0f, 2.0f), float (5), float (1) };
 	//color position direction range intensity spotfalloff
-	light4 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT3(0.0f, -1.0f, 0.0f), float(10), float(1), float (10) };
+	light4 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(8.0f, +0.0f, 3.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), float(40), float(10), float (25) };
 	LoadShaders();
 	CreateMatrices();
 
@@ -145,10 +151,16 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_roughness.png", 0, &scratchedR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_metal.png", 0, &scratchedM);
 
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_albedo.png", 0, &cobbleA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_normals.png", 0, &cobbleN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
+
 
 
 	//Load skybox texture from DDS file
-	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Space2.dds", 0, &skySRV);
+	//CreateDDSTextureFromFile(device, L"../../Assets/Textures/orbitalSkybox.dds", 0, &skySRV);
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envEnvHDR.dds", 0, &skySRV);
 
 	CreateMesh();
 	//creating a sampler state for the textures
@@ -351,8 +363,11 @@ void Game::CreateMesh()
 	auto sphereindices = loader.LoadedMeshes[0].Indices;
 	sphereMesh = new Mesh();
 	sphereMesh->CreateBasicGeometry(sphereverts.data(), (UINT)sphereverts.size(), sphereindices.data(), (UINT)sphereindices.size(), device);
+	
+	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
 	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
+	
 
 	//materials
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
@@ -361,6 +376,7 @@ void Game::CreateMesh()
 	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, 0, 0, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
+	cubeMaterial = new Material(vertexShader, pixelShader, cobbleA, cobbleN, cobbleR, cobbleM, sampler);
 
 	
 
@@ -370,6 +386,7 @@ void Game::CreateMesh()
 	entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
 	entities.push_back(new GameEntity(saturnMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
+	entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
 
 }
 
@@ -557,11 +574,18 @@ void Game::Update(float deltaTime, float totalTime)
 
 	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	entities[0]->SetTranslation(XMFLOAT3(2, 0, 0));
+	entities[0]->SetTranslation(XMFLOAT3(2, 0, 3));
 
-	entities[1]->SetTranslation(XMFLOAT3(1, 0, 2));
-	entities[3]->SetTranslation(XMFLOAT3(-1, 0, 1));
-	entities[4]->SetTranslation(XMFLOAT3(-2, 0, 4));
+	entities[1]->SetTranslation(XMFLOAT3(1, 0, 5));
+
+	entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
+
+	entities[3]->SetTranslation(XMFLOAT3(-1.5f, 0, 6));
+
+	entities[4]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
+	entities[4]->SetTranslation(XMFLOAT3(-2, 0, 3));
+
+	entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
 	
 }
 

@@ -83,10 +83,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
 	// Total color for this pixel
 	float3 totalColor = float3(0, 0, 0);
-	//LIGHT_TYPE_DIRECTIONAL:
-	totalColor = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
-	totalColor += PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
-	totalColor += SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	
+	float3 dirPBR = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	float3 pointPBR = PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	float3 spotPBR = SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+
+	totalColor = dirPBR + pointPBR; // +spotPBR;
 
 	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;

@@ -71,6 +71,7 @@ private:
 	ID3D11ShaderResourceView* slateSRV;
 	ID3D11ShaderResourceView* slateNormalSRV;
 	ID3D11ShaderResourceView *scratchedA, *scratchedN, *scratchedR, *scratchedM;
+	ID3D11ShaderResourceView *cobbleA, *cobbleN, *cobbleR, *cobbleM;
 
 	//shaders
 	SimpleVertexShader* ppVS;
@@ -94,6 +95,7 @@ private:
 	Mesh* neptuneMesh;
 	Mesh* saturnMesh;
 	Mesh* sphereMesh;
+	Mesh* cubeMesh;
 	Mesh* skyMesh;
 
 	//entities
@@ -105,6 +107,7 @@ private:
 	Material* neptuneMaterial;
 	Material* saturnMaterial;
 	Material* sphereMaterial;
+	Material* cubeMaterial;
 
 	Camera* camera;
 

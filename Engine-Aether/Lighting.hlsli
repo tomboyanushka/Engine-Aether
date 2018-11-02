@@ -18,6 +18,7 @@ struct PointLight
 	float3 Position;
 	float Range;
 	float Intensity;
+	float3 padding;
 };
 
 struct SpotLight
@@ -28,6 +29,7 @@ struct SpotLight
 	float Range;
 	float Intensity;
 	float SpotFalloff;
+	float3 padding;
 };
 
 float DiffusePBR(float3 normal, float3 dirToLight)
@@ -179,12 +181,13 @@ float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 ca
 
 float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
 {
-	float3 toLight = normalize(light.Position - worldPos);
-	// Calculate the spot falloff
-	float penumbra = pow(saturate(dot(-toLight, light.Direction)), light.SpotFalloff);
-	// Calc light direction
 	
+	// Calc light direction
+	float3 toLight = normalize(light.Position - worldPos);	
 	float3 toCam = normalize(camPos - worldPos);
+
+	// Calculate the spot falloff
+	float penumbra = pow(saturate(dot(toLight, light.Direction)), light.SpotFalloff);
 
 	// Calculate the light amounts
 	float atten = Attenuate(light.Position, worldPos, light.Range);

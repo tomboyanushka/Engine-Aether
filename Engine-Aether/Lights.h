@@ -17,6 +17,7 @@ struct PointLight
 	XMFLOAT3 Position;
 	float Range;
 	float Intensity;
+	XMFLOAT3 padding;
 };
 
 struct SpotLight
@@ -27,4 +28,5 @@ struct SpotLight
 	float Range;
 	float Intensity;
 	float SpotFalloff;
+	XMFLOAT3 padding;
 };
