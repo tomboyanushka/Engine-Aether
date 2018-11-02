@@ -25,9 +25,9 @@ struct SpotLight
 {
 	float4 Color;
 	float3 Position;
+	float Intensity;
 	float3 Direction;
 	float Range;
-	float Intensity;
 	float SpotFalloff;
 	float3 padding;
 };
@@ -200,8 +200,8 @@ float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camP
 
 	// Combine
 	float3 final = (balancedDiff * surfaceColor + spec) * atten * light.Intensity * light.Color;
-
+	final = final * penumbra;
 	// Combine with the point light calculation
 	// Note: This could be optimized a bit
-	return final * penumbra;
+	return float3 (penumbra, 0, 0);
 }

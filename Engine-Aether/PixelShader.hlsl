@@ -88,7 +88,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 pointPBR = PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 	float3 spotPBR = SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 
-	totalColor = dirPBR + pointPBR; // +spotPBR;
+	totalColor = dirPBR + pointPBR + spotPBR;
 
 	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;

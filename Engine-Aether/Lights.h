@@ -24,9 +24,9 @@ struct SpotLight
 {
 	XMFLOAT4 Color;
 	XMFLOAT3 Position;
+	float Intensity;
 	XMFLOAT3 Direction;
 	float Range;
-	float Intensity;
 	float SpotFalloff;
 	XMFLOAT3 padding;
 };

@@ -129,8 +129,8 @@ void Game::Init()
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	//color position range intensity
 	light3 = { XMFLOAT4(+0.1f, +0.8f, +0.0f, 1.0f), XMFLOAT3(-1.0f, +0.0f, 2.0f), float (5), float (1) };
-	//color position direction range intensity spotfalloff
-	light4 = { XMFLOAT4(+0.8f, +0.1f, +0.1f, 1.0f), XMFLOAT3(8.0f, +0.0f, 3.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f), float(40), float(10), float (25) };
+	//color position intensity direction range spotfalloff
+	light4 = { XMFLOAT4(+1.0f, +0.1f, +0.1f, 1.0f), XMFLOAT3(8.0f, +0.0f, 3.0f), float(10), XMFLOAT3(-1.0f, 0.0f, 0.0f), float(10), float (25) };
 	LoadShaders();
 	CreateMatrices();
 
