@@ -125,12 +125,12 @@ Game::~Game()
 void Game::Init()
 {
 	//Ambient, Diffuse, Direction
-	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +1.0f, +1.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.8f) };
+	light1 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+0.2f, +0.2f, +0.2f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.8f) };
 	light2 = { XMFLOAT4(+0.1f, +0.1f, +0.1f, 1.0f), XMFLOAT4(+1.0f, +0.0f, +0.0f, +1.0f), XMFLOAT3(+1.0f, +0.0f, 0.0f) };
 	//color position range intensity
 	light3 = { XMFLOAT4(+0.1f, +0.8f, +0.0f, 1.0f), XMFLOAT3(-1.0f, +0.0f, 2.0f), float (5), float (1) };
 	//color position intensity direction range spotfalloff
-	light4 = { XMFLOAT4(+1.0f, +0.1f, +0.1f, 1.0f), XMFLOAT3(8.0f, +0.0f, 3.0f), float(10), XMFLOAT3(-1.0f, 0.0f, 0.0f), float(10), float (25) };
+	light4 = { XMFLOAT4(+0.7f, +0.4f, +0.1f, 1.0f), XMFLOAT3(5.0f, +2.0f,2.0f), float(5), XMFLOAT3(-1.0f, -1.0f, 0.0f), float(50), float (10) };
 	LoadShaders();
 	CreateMatrices();
 

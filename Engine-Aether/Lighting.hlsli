@@ -187,7 +187,10 @@ float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camP
 	float3 toCam = normalize(camPos - worldPos);
 
 	// Calculate the spot falloff
-	float penumbra = pow(saturate(dot(toLight, light.Direction)), light.SpotFalloff);
+	float a = dot(-toLight, light.Direction);
+	float b = saturate(a);
+	
+	float penumbra = pow(b, light.SpotFalloff);
 
 	// Calculate the light amounts
 	float atten = Attenuate(light.Position, worldPos, light.Range);
@@ -203,5 +206,5 @@ float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camP
 	final = final * penumbra;
 	// Combine with the point light calculation
 	// Note: This could be optimized a bit
-	return float3 (penumbra, 0, 0);
+	return final;
 }
