@@ -46,7 +46,7 @@ private:
 	void DrawCircleofConfusion();
 	void DrawDepthofField();
 
-
+	bool isDOFEnabled = false;
 
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;

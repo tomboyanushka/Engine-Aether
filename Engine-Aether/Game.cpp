@@ -586,6 +586,15 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[4]->SetTranslation(XMFLOAT3(-2, 0, 3));
 
 	entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
+
+	if (GetAsyncKeyState(VK_TAB))
+	{
+		isDOFEnabled = true;
+	}
+	else
+	{
+		isDOFEnabled = false;
+	}
 	
 }
 
@@ -633,8 +642,16 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	ppVS->SetShader();
 	ppPS->SetShader();
-
-	ppPS->SetShaderResourceView("Pixels", DoFSRV);
+	ID3D11ShaderResourceView* result = nullptr;
+	if (isDOFEnabled)
+	{
+		result = DoFSRV;
+	}
+	else
+	{
+		result = ppSRV;
+	}
+	ppPS->SetShaderResourceView("Pixels", result);
 	ppPS->SetSamplerState("Sampler", sampler);
 	ppPS->CopyAllBufferData();
 
