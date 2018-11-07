@@ -90,11 +90,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Sample the roughness map
 	float roughness = RoughnessTexture.Sample(BasicSampler, input.uv).r;
-	//roughness = lerp(0.2f, roughness, 0.5f);
+	roughness = lerp(0.2f, roughness, 0.5f);
 
 	// Sample the metal map
 	float metalness = MetalTexture.Sample(BasicSampler, input.uv).r;
-	//metal = lerp(0.0f, metal, 0.5f);
+	metalness = lerp(0.0f, metalness, 0.5f);
 
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
 	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, 1);
