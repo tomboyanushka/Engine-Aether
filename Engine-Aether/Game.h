@@ -60,18 +60,19 @@ private:
 
 	//textures
 	ID3D11SamplerState* sampler;
-	ID3D11ShaderResourceView* earthSRV;
-	ID3D11ShaderResourceView* earthNormalSRV;
-	ID3D11ShaderResourceView* marsSRV;
-	ID3D11ShaderResourceView* marsNormalSRV;
-	ID3D11ShaderResourceView* neptuneSRV;
-	ID3D11ShaderResourceView* neptuneNormalSRV;
-	ID3D11ShaderResourceView* saturnSRV;
-	ID3D11ShaderResourceView* saturnNormalSRV;
-	ID3D11ShaderResourceView* slateSRV;
-	ID3D11ShaderResourceView* slateNormalSRV;
+	ID3D11ShaderResourceView* earthSRV, *earthNormalSRV;
+	ID3D11ShaderResourceView* marsSRV, *marsNormalSRV;
+	ID3D11ShaderResourceView* neptuneSRV, *neptuneNormalSRV;
+	ID3D11ShaderResourceView* saturnSRV, *saturnNormalSRV;
+	ID3D11ShaderResourceView* slateSRV, *slateNormalSRV;
 	ID3D11ShaderResourceView *scratchedA, *scratchedN, *scratchedR, *scratchedM;
 	ID3D11ShaderResourceView *cobbleA, *cobbleN, *cobbleR, *cobbleM;
+
+	//for IBL
+	ID3D11ShaderResourceView* skyIrradiance;
+	ID3D11ShaderResourceView* skyPrefilter;
+	ID3D11ShaderResourceView* brdfLookUpTexture;
+
 
 	//shaders
 	SimpleVertexShader* ppVS;

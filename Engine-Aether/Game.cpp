@@ -50,27 +50,27 @@ Game::Game(HINSTANCE hInstance)
 //cleaning everything, even memory leaks
 Game::~Game()
 {
-	delete vertexShader;
-	delete pixelShader;
+	if(vertexShader) delete vertexShader;
+	if (pixelShader) delete pixelShader;
 
-	delete ppPS;
-	delete ppVS;
-	delete blurPS;
-	delete CoCPS;
-	delete CoCVS;
-	delete DoFPS;
-	delete skyPS;
-	delete skyVS;
+	if (ppPS) delete ppPS;
+	if (ppVS) delete ppVS;
+	if (blurPS) delete blurPS;
+	if (CoCPS) delete CoCPS;
+	if (CoCVS) delete CoCVS;
+	if (DoFPS) delete DoFPS;
+	if (skyPS) delete skyPS;
+	if (skyVS) delete skyVS;
 
-	ppRTV->Release();
-	ppSRV->Release();
-	blurRTV->Release();
-	blurSRV->Release();
-	CoCRTV->Release();
-	CoCSRV->Release();
-	DoFRTV->Release();
-	DoFSRV->Release();
-	depthBufferSRV->Release();
+	if (ppRTV) ppRTV->Release();
+	if (ppSRV) ppSRV->Release();
+	if (blurRTV) blurRTV->Release();
+	if (blurSRV) blurSRV->Release();
+	if (CoCRTV) CoCRTV->Release();
+	if (CoCSRV) CoCSRV->Release();
+	if (DoFRTV) DoFRTV->Release();
+	if (DoFSRV) DoFSRV->Release();
+	if (depthBufferSRV) depthBufferSRV->Release();
 
 	slateSRV->Release();
 	slateNormalSRV->Release();
@@ -91,6 +91,9 @@ Game::~Game()
 	cobbleN->Release();
 	cobbleR->Release();
 	skySRV->Release();
+	skyIrradiance->Release();
+	skyPrefilter->Release();
+	brdfLookUpTexture->Release();
 	sampler->Release();
 
 	skyDepthState->Release();
@@ -161,6 +164,13 @@ void Game::Init()
 	//Load skybox texture from DDS file
 	//CreateDDSTextureFromFile(device, L"../../Assets/Textures/orbitalSkybox.dds", 0, &skySRV);
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envEnvHDR.dds", 0, &skySRV);
+	
+	/////////IBL Baker textures////////////////////////////////////////////////////////////////
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envDiffuseHDR.dds", 0, &skyIrradiance);
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envSpecularHDR.dds", 0, &skyPrefilter);
+	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envBrdf.dds", 0, &brdfLookUpTexture);
+
+
 
 	CreateMesh();
 	//creating a sampler state for the textures
@@ -536,7 +546,7 @@ void Game::DrawEntity(GameEntity * gameEntityObject)
 	pixelShader->SetData("light4", &light4, sizeof(SpotLight));
 	pixelShader->SetFloat3("CameraPosition", camera->GetPosition());
 
-	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler);
+	gameEntityObject->PrepareMaterial(viewMatrix, projectionMatrix, sampler, skyIrradiance, skyPrefilter, brdfLookUpTexture);
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
 	pixelShader->CopyAllBufferData();

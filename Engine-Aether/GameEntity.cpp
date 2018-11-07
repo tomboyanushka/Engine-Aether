@@ -97,7 +97,8 @@ void GameEntity::UpdateWorldMatrix()
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(total));
 }
 
-void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11SamplerState * objSampler)
+void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, ID3D11SamplerState * objSampler, 
+	ID3D11ShaderResourceView* skyIR, ID3D11ShaderResourceView* skyPrefilter, ID3D11ShaderResourceView* brdf)
 {
 	auto vertexShader = materialObject->GetVertexShader();
 	auto pixelShader = materialObject->GetPixelShader();
@@ -107,6 +108,10 @@ void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix, I
 	pixelShader->SetShaderResourceView("NormalTexture", materialObject->GetNormalSRV());
 	pixelShader->SetShaderResourceView("RoughnessTexture", materialObject->GetRoughnessSRV());
 	pixelShader->SetShaderResourceView("MetalTexture", materialObject->GetMetalSRV());
+
+	pixelShader->SetShaderResourceView("skyIrradianceTexture", skyIR);
+	pixelShader->SetShaderResourceView("skyPrefilterTexture", skyPrefilter);
+	pixelShader->SetShaderResourceView("brdfLookUpTexture", brdf);
 
 	pixelShader->SetSamplerState("BasicSampler", objSampler);
 

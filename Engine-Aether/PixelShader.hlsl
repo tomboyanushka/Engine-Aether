@@ -24,6 +24,11 @@ Texture2D AlbedoTexture		: register(t0);
 Texture2D NormalTexture		: register(t1);
 Texture2D RoughnessTexture	: register(t2);
 Texture2D MetalTexture		: register(t3);
+
+TextureCube skyIrradianceTexture: register(t4);
+Texture2D brdfLookUpTexture: register(t5);
+TextureCube skyPrefilterTexture: register(t6);
+
 SamplerState BasicSampler	: register(s0);
 
 
@@ -59,6 +64,21 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 	return normalize(mul(unpackedNormal, TBN));
 }
 
+float3 PrefilteredColor(float3 viewDir, float3 normal, float roughness)
+{
+	const float MAX_REF_LOD = 4.0f;
+	float3 R = reflect(-viewDir, normal);
+	return skyPrefilterTexture.SampleLevel(BasicSampler, R, roughness * MAX_REF_LOD).rgb;
+}
+
+float2 BrdfLUT(float3 normal, float3 viewDir, float roughness)
+{
+	float NdotV = dot(normal, viewDir);
+	NdotV = max(NdotV, 0.0f);
+	float2 uv = float2(NdotV, roughness);
+	return brdfLookUpTexture.Sample(BasicSampler, uv).rg;
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	//return float4(0,0,1,1);
@@ -83,8 +103,15 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
 	// Total color for this pixel
 	float3 totalColor = float3(0, 0, 0);
+
+	//IBL calculations
+	float3 viewDir = normalize(CameraPosition - input.worldPos);
+	float3 prefilter = PrefilteredColor(viewDir, input.normal, roughness);
+	float2 brdf = BrdfLUT(input.normal, viewDir, roughness);
+	float3 irradiance = skyIrradianceTexture.Sample(BasicSampler, input.normal).rgb;
 	
-	float3 dirPBR = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+	float3 dirPBR = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor, irradiance, prefilter, brdf);
+	//float3 dirPBR = DirLightPBR(light1, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 	float3 pointPBR = PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 	float3 spotPBR = SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 

@@ -114,7 +114,7 @@ float GeometricShadowing(float3 n, float3 v, float3 h, float roughness)
 // D() - Spec Dist - Trowbridge-Reitz (GGX)
 // F() - Fresnel - Schlick approx
 // G() - Geometric Shadowing - Schlick-GGX
-float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float metalness, float3 specColor)
+float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float metalness, float3 specColor, out float3 kS)
 {
 	// Other vectors
 	float3 h = normalize(v + l);
@@ -123,7 +123,7 @@ float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float metal
 	float D = SpecDistribution(n, h, roughness);
 	float3 F = Fresnel(v, h, specColor); // This ranges from F0_NON_METAL to actual specColor based on metalness
 	float G = GeometricShadowing(n, v, h, roughness) * GeometricShadowing(n, l, h, roughness);
-
+	kS = F;
 	// Final formula
 	// Denominator dot products partially canceled by G()!
 	// See page 16: http://blog.selfshadow.com/publications/s2012-shading-course/hoffman/s2012_pbs_physics_math_notes.pdf
@@ -142,7 +142,15 @@ float3 DiffuseEnergyConserve(float diffuse, float3 specular, float metalness)
 	return diffuse * ((1 - saturate(specular)) * (1 - metalness));
 }
 
-float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+float3 AmbientPBR(float3 kD, float metalness, float3 diffuse, float ao, float3 specular)
+{
+	kD *= (1.0f - metalness);
+	return (kD * diffuse + specular) * ao;
+}
+
+float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float3 camPos, 
+	float roughness, float metalness, float3 surfaceColor, float3 specularColor, 
+	float3 irradiance, float3 prefilteredColor, float2 brdf)
 {
 	// Get normalize direction to the light
 	float3 toLight = normalize(-light.Direction);
@@ -150,18 +158,33 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 
 	// Calculate the light amounts
 	float diff = DiffusePBR(normal, toLight);
-	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
+	float3 kS = float3(0.f, 0.f, 0.f);
+	float ao = 1.0f;
+	
 
+	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor, kS);
+	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
 	// Calculate diffuse with energy conservation
 	// (Reflected light doesn't get diffused)
-	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
 
-	// Combine amount with 
-	return (balancedDiff * surfaceColor + spec) /* light.Intensity*/ * light.DiffuseColor;
+	float3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
+	float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+	kD *= 1.0 - metalness;
+	float3 diffuse = irradiance * surfaceColor;
+	float3 ambient = AmbientPBR(kD, metalness, diffuse, ao, specular);
+	
+	return (balancedDiff * surfaceColor + spec) * 1/*light.Intensity*/ * light.DiffuseColor.rgb + ambient;
+	//float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
+
+	//// Combine amount with 
+	//return (balancedDiff * surfaceColor + spec) /* light.Intensity*/ * light.DiffuseColor;
 }
 
-float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 camPos, 
+	float roughness, float metalness, float3 surfaceColor, float3 specularColor)
 {
+	float3 kS = float3(0.f, 0.f, 0.f);
+	float ao = 1.0f;
 	// Calc light direction
 	float3 toLight = normalize(light.Position - worldPos);
 	float3 toCam = normalize(camPos - worldPos);
@@ -169,7 +192,7 @@ float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 ca
 	// Calculate the light amounts
 	float atten = Attenuate(light.Position, worldPos, light.Range);
 	float diff = DiffusePBR(normal, toLight);
-	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
+	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor, kS);
 
 	// Calculate diffuse with energy conservation
 	// (Reflected light doesn't diffuse)
@@ -179,9 +202,12 @@ float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 ca
 	return (balancedDiff * surfaceColor + spec) * atten * light.Intensity * light.Color;
 }
 
-float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor)
+float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camPos, 
+	float roughness, float metalness, float3 surfaceColor, float3 specularColor)
 {
 	
+	float3 kS = float3(0.f, 0.f, 0.f);
+	float ao = 1.0f;
 	// Calc light direction
 	float3 toLight = normalize(light.Position - worldPos);	
 	float3 toCam = normalize(camPos - worldPos);
@@ -195,7 +221,7 @@ float3 SpotLightPBR(SpotLight light, float3 normal, float3 worldPos, float3 camP
 	// Calculate the light amounts
 	float atten = Attenuate(light.Position, worldPos, light.Range);
 	float diff = DiffusePBR(normal, toLight);
-	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
+	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor, kS);
 
 	// Calculate diffuse with energy conservation
 	// (Reflected light doesn't diffuse)
