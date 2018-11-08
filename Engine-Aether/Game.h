@@ -68,6 +68,7 @@ private:
 	ID3D11ShaderResourceView *scratchedA, *scratchedN, *scratchedR, *scratchedM;
 	ID3D11ShaderResourceView *cobbleA, *cobbleN, *cobbleR, *cobbleM;
 	ID3D11ShaderResourceView *lavaA, *lavaN, *lavaR, *lavaM;
+	ID3D11ShaderResourceView *waterA, *waterN, *waterR, *waterM;
 
 	//for IBL
 	ID3D11ShaderResourceView* skyIrradiance;

@@ -94,6 +94,10 @@ Game::~Game()
 	lavaN->Release();
 	lavaR->Release();
 	lavaM->Release();
+	waterA->Release();
+	waterN->Release();
+	waterM->Release();
+	waterR->Release();
 	skySRV->Release();
 	skyIrradiance->Release();
 	skyPrefilter->Release();
@@ -163,10 +167,15 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavadiffuse.png", 0, &lavaA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavanormal.png", 0, &lavaN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavaroughness.png", 0, &lavaR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavametal.png", 0, &lavaM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavadiffuse.tif", 0, &lavaA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavanormal.tif", 0, &lavaN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavaroughness.tif", 0, &lavaR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavametal.tif", 0, &lavaM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/wateralbedo.jpg", 0, &waterA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waterroughness.png", 0, &waterR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/watermetal.jpg", 0, &waterM);
 
 
 
@@ -391,19 +400,19 @@ void Game::CreateMesh()
 	//materials
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
-	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaN, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, lavaA, 0, 0, 0, sampler);
 	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
-	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, 0, 0, sampler);
+	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
 	cubeMaterial = new Material(vertexShader, pixelShader, cobbleA, cobbleN, cobbleR, cobbleM, sampler);
 
 	
 
 	//entities
-	entities.push_back(new GameEntity(earthMesh, earthMaterial));
-	entities.push_back(new GameEntity(marsMesh, marsMaterial));
+	entities.push_back(new GameEntity(sphereMesh, earthMaterial));
+	entities.push_back(new GameEntity(sphereMesh, marsMaterial));
 	//entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
-	entities.push_back(new GameEntity(saturnMesh, saturnMaterial));
+	entities.push_back(new GameEntity(sphereMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
 	//entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
 
