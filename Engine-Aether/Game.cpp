@@ -90,6 +90,10 @@ Game::~Game()
 	cobbleM->Release();
 	cobbleN->Release();
 	cobbleR->Release();
+	lavaA->Release();
+	lavaN->Release();
+	lavaR->Release();
+	lavaM->Release();
 	skySRV->Release();
 	skyIrradiance->Release();
 	skyPrefilter->Release();
@@ -158,6 +162,11 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_normals.png", 0, &cobbleN);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavadiffuse.png", 0, &lavaA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavanormal.png", 0, &lavaN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavaroughness.png", 0, &lavaR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavametal.png", 0, &lavaM);
 
 
 
@@ -382,7 +391,7 @@ void Game::CreateMesh()
 	//materials
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
-	marsMaterial = new Material(vertexShader, pixelShader, marsSRV, marsNormalSRV, 0, 0, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaN, sampler);
 	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, saturnSRV, saturnNormalSRV, 0, 0, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
@@ -393,10 +402,10 @@ void Game::CreateMesh()
 	//entities
 	entities.push_back(new GameEntity(earthMesh, earthMaterial));
 	entities.push_back(new GameEntity(marsMesh, marsMaterial));
-	entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
+	//entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
 	entities.push_back(new GameEntity(saturnMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
-	entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
+	//entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
 
 }
 
@@ -584,18 +593,18 @@ void Game::Update(float deltaTime, float totalTime)
 
 	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	entities[0]->SetTranslation(XMFLOAT3(2, 0, 3));
+	entities[0]->SetTranslation(XMFLOAT3(2, 0, 2));
 
-	entities[1]->SetTranslation(XMFLOAT3(1, 0, 5));
+	entities[1]->SetTranslation(XMFLOAT3(1.5f, 0, 5));
 
-	entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
+	//entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
 
-	entities[3]->SetTranslation(XMFLOAT3(-1.5f, 0, 6));
+	entities[2]->SetTranslation(XMFLOAT3(-1.5f, 0, 5));
 
-	entities[4]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	entities[4]->SetTranslation(XMFLOAT3(-2, 0, 3));
+	entities[3]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
+	entities[3]->SetTranslation(XMFLOAT3(-2, 0, 2));
 
-	entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
+	//entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
 
 	if (GetAsyncKeyState(VK_TAB))
 	{

@@ -169,7 +169,6 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 
 	float3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
 	float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
-	kD *= 1.0 - metalness;
 	float3 diffuse = irradiance * surfaceColor;
 	float3 ambient = AmbientPBR(kD, metalness, diffuse, ao, specular);
 	
