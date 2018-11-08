@@ -167,10 +167,10 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavadiffuse.tif", 0, &lavaA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavanormal.tif", 0, &lavaN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavaroughness.tif", 0, &lavaR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/lavametal.tif", 0, &lavaM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/diffuse.jpg", 0, &lavaA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/normal.jpg", 0, &lavaN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/roughness.jpg", 0, &lavaR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/metal.jpg", 0, &lavaM);
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/wateralbedo.jpg", 0, &waterA);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
@@ -400,7 +400,7 @@ void Game::CreateMesh()
 	//materials
 	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
-	marsMaterial = new Material(vertexShader, pixelShader, lavaA, 0, 0, 0, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaM, sampler);
 	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
