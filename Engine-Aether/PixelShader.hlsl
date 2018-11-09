@@ -97,7 +97,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//metalness = lerp(0.0f, metalness, 1);
 
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
-	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, 1);
+	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metalness);
 	//float3 specColor = F0_NON_METAL.rrr;// , surfaceColor.rgb, 1);
 
 	//float3 lightOne = surfaceColor.rgb * (light1.DiffuseColor * dirNdotL + light1.AmbientColor);
