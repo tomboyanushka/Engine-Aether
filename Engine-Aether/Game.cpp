@@ -72,32 +72,33 @@ Game::~Game()
 	if (DoFSRV) DoFSRV->Release();
 	if (depthBufferSRV) depthBufferSRV->Release();
 
-	slateSRV->Release();
-	slateNormalSRV->Release();
 	earthSRV->Release();
 	earthNormalSRV->Release();
-	marsSRV->Release();
-	marsNormalSRV->Release();
-	neptuneSRV->Release();
-	neptuneNormalSRV->Release();
-	saturnSRV->Release();
-	saturnNormalSRV->Release();
 	scratchedA->Release();
 	scratchedM->Release();
 	scratchedN->Release();
 	scratchedR->Release();
+
 	cobbleA->Release();
 	cobbleM->Release();
 	cobbleN->Release();
 	cobbleR->Release();
+
 	lavaA->Release();
 	lavaN->Release();
 	lavaR->Release();
 	lavaM->Release();
+
 	waterA->Release();
 	waterN->Release();
 	waterM->Release();
 	waterR->Release();
+
+	woodA->Release();
+	woodN->Release();
+	woodM->Release();
+	woodR->Release();
+
 	skySRV->Release();
 	skyIrradiance->Release();
 	skyPrefilter->Release();
@@ -106,19 +107,14 @@ Game::~Game()
 
 	skyDepthState->Release();
 	skyRasterState->Release();
-
-	delete slateMaterial;
 	delete earthMaterial;
 	delete marsMaterial;
-	delete neptuneMaterial;
 	delete saturnMaterial;
 	delete sphereMaterial;
 	delete cubeMaterial;
 
 	delete earthMesh;
 	delete marsMesh;
-	delete neptuneMesh;
-	delete saturnMesh;
 	delete sphereMesh;
 	delete cubeMesh;
 	delete skyMesh;
@@ -146,16 +142,8 @@ void Game::Init()
 	CreateMatrices();
 
 	//loading textures and normal maps
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slate.tif", 0, &slateSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/slateNormal.tif", 0, &slateNormalSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/mars.jpg", 0, &marsSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/marsNormal.jpg", 0, &marsNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptune.jpg", 0, &neptuneSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/neptuneNormal.jpg", 0, &neptuneNormalSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Saturn.jpg", 0, &saturnSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/SaturnNormal.png", 0, &saturnNormalSRV);
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_albedo.png", 0, &scratchedA);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_normals.png", 0, &scratchedN);
@@ -176,6 +164,12 @@ void Game::Init()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waterroughness.png", 0, &waterR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/watermetal.jpg", 0, &waterM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/diffuse.png", 0, &woodA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/normal.png", 0, &woodN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/roughness.png", 0, &woodR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/metal.png", 0, &woodM);
+
 
 
 
@@ -373,18 +367,6 @@ void Game::CreateMesh()
 	marsMesh = new Mesh();
 	marsMesh->CreateBasicGeometry(marsverts.data(), (UINT)marsverts.size(), marsindices.data(), (UINT)marsindices.size(), device);
 
-	loader.LoadFile("../Assets/Models/Neptune.obj");
-	auto neptuneverts = MapObjlToVertex(loader.LoadedVertices);
-	auto neptuneindices = loader.LoadedMeshes[0].Indices;
-	neptuneMesh = new Mesh();
-	neptuneMesh->CreateBasicGeometry(neptuneverts.data(), (UINT)neptuneverts.size(), neptuneindices.data(), (UINT)neptuneindices.size(), device);
-
-
-	loader.LoadFile("../Assets/Models/Saturn.obj");
-	auto saturnverts = MapObjlToVertex(loader.LoadedVertices);
-	auto saturnindices = loader.LoadedMeshes[0].Indices;
-	saturnMesh = new Mesh();
-	saturnMesh->CreateBasicGeometry(saturnverts.data(), (UINT)saturnverts.size(), saturnindices.data(), (UINT)saturnindices.size(), device);
 
 	loader.LoadFile("../../Assets/Models/sphere.obj");
 	auto sphereverts = MapObjlToVertex(loader.LoadedVertices);
@@ -398,23 +380,20 @@ void Game::CreateMesh()
 	
 
 	//materials
-	slateMaterial = new Material(vertexShader, pixelShader, slateSRV, slateNormalSRV, 0, 0, sampler);
 	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
 	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaM, sampler);
-	neptuneMaterial = new Material(vertexShader, pixelShader, neptuneSRV, neptuneNormalSRV, 0, 0, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
-	cubeMaterial = new Material(vertexShader, pixelShader, cobbleA, cobbleN, cobbleR, cobbleM, sampler);
+	cubeMaterial = new Material(vertexShader, pixelShader, woodA, woodN, woodR, woodM, sampler);
 
 	
 
 	//entities
 	entities.push_back(new GameEntity(sphereMesh, earthMaterial));
 	entities.push_back(new GameEntity(sphereMesh, marsMaterial));
-	//entities.push_back(new GameEntity(neptuneMesh, neptuneMaterial));
 	entities.push_back(new GameEntity(sphereMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
-	//entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
+	entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
 
 }
 

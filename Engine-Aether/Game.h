@@ -61,14 +61,11 @@ private:
 	//textures
 	ID3D11SamplerState* sampler;
 	ID3D11ShaderResourceView* earthSRV, *earthNormalSRV;
-	ID3D11ShaderResourceView* marsSRV, *marsNormalSRV;
-	ID3D11ShaderResourceView* neptuneSRV, *neptuneNormalSRV;
-	ID3D11ShaderResourceView* saturnSRV, *saturnNormalSRV;
-	ID3D11ShaderResourceView* slateSRV, *slateNormalSRV;
 	ID3D11ShaderResourceView *scratchedA, *scratchedN, *scratchedR, *scratchedM;
 	ID3D11ShaderResourceView *cobbleA, *cobbleN, *cobbleR, *cobbleM;
 	ID3D11ShaderResourceView *lavaA, *lavaN, *lavaR, *lavaM;
 	ID3D11ShaderResourceView *waterA, *waterN, *waterR, *waterM;
+	ID3D11ShaderResourceView *woodA, *woodN, *woodR, *woodM;
 
 	//for IBL
 	ID3D11ShaderResourceView* skyIrradiance;
@@ -95,8 +92,6 @@ private:
 	//meshes
 	Mesh* earthMesh;
 	Mesh* marsMesh;
-	Mesh* neptuneMesh;
-	Mesh* saturnMesh;
 	Mesh* sphereMesh;
 	Mesh* cubeMesh;
 	Mesh* skyMesh;
@@ -104,10 +99,9 @@ private:
 	//entities
 	std::vector<GameEntity*> entities;
 
-	Material* slateMaterial;
+
 	Material* earthMaterial;
 	Material* marsMaterial;
-	Material* neptuneMaterial;
 	Material* saturnMaterial;
 	Material* sphereMaterial;
 	Material* cubeMaterial;
