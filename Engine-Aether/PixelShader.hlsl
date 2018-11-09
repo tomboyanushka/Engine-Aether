@@ -66,7 +66,7 @@ float3 calculateNormalFromMap(float2 uv, float3 normal, float3 tangent)
 
 float3 PrefilteredColor(float3 viewDir, float3 normal, float roughness)
 {
-	const float MAX_REF_LOD = 4.0f;
+	const float MAX_REF_LOD = 8.0f;
 	float3 R = reflect(-viewDir, normal);
 	return skyPrefilterTexture.SampleLevel(BasicSampler, R, roughness * MAX_REF_LOD).rgb;
 }
@@ -90,14 +90,15 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Sample the roughness map
 	float roughness = RoughnessTexture.Sample(BasicSampler, input.uv).r;
-	roughness = lerp(0.2f, roughness, 0.5f);
+	//roughness = lerp(0.2f, roughness, 1);
 
 	// Sample the metal map
 	float metalness = MetalTexture.Sample(BasicSampler, input.uv).r;
-	metalness = lerp(0.0f, metalness, 0.5f);
+	//metalness = lerp(0.0f, metalness, 1);
 
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
 	float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, 1);
+	//float3 specColor = F0_NON_METAL.rrr;// , surfaceColor.rgb, 1);
 
 	//float3 lightOne = surfaceColor.rgb * (light1.DiffuseColor * dirNdotL + light1.AmbientColor);
 	//float3 lightTwo = surfaceColor.rgb * (light2.DiffuseColor * dirNdotL2 + light2.AmbientColor);
@@ -115,7 +116,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 pointPBR = PointLightPBR(light3, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 	float3 spotPBR = SpotLightPBR(light4, input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
 
-	totalColor = dirPBR + pointPBR + spotPBR;
+	totalColor = dirPBR;// +pointPBR + spotPBR;
 
 	float packedValue = PackFloat(input.linearZ, 100.0f);
 	//return light2.DiffuseColor * dirNdotL2 + light.AmbientColor;
