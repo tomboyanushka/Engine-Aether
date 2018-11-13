@@ -30,10 +30,11 @@ float UnpackFloat(float linearZ, float farZ)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {	
+	//float scale = 0.1f;
 	float linearZ = UnpackFloat(Pixels.Sample(Sampler, input.uv).a, 100);
 
 	 // 0.105 * 100 = 10.5
-	float radius = (linearZ - focusPlaneZ) * scale;
+float radius = (linearZ - focusPlaneZ) * scale;
 	radius = (radius + 1) / 2;
 	return float4(radius, 0, 0, 0);
 }

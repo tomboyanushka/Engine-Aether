@@ -24,13 +24,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 blurred = BlurTexture.Sample(Sampler, input.uv).rgb;
 
 	//Normalized radius
-	float normRadius = (radius * 2.0 - 1.0);
+	float normRadius = (radius * 2.0 - 1.0);// *0.25f;
 
 	//Boost the blur factor
 	normRadius = clamp(normRadius * 2.0, -1.0, 1.0);
 
 	float3 result = lerp(sharp, blurred, abs(normRadius));
 
-	return float4(blurred, 1);
+	return float4(result, 1);
 
 }

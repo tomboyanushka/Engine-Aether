@@ -482,7 +482,7 @@ void Game::DrawCircleofConfusion()
 	CoCPS->SetSamplerState("Sampler", sampler);
 	CoCPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
 	CoCPS->SetFloat("focusPlaneZ", focusZ);
-	CoCPS->SetFloat("scale", 1);
+	CoCPS->SetFloat("scale", 0.15f);
 	CoCPS->SetFloat("zFar", 100.0f);
 	CoCPS->SetFloat("zNear", 0.1f);
 	CoCPS->CopyAllBufferData();
