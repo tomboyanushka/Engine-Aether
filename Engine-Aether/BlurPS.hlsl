@@ -3,8 +3,6 @@ cbuffer Data : register(b0)
 	float pixelWidth;
 	float pixelHeight;
 	float blurAmount;
-	float4x4 viewMatrixInv;
-	float4x4 projMatrixInv;
 	float focusPlaneZ;
 	float zFar;
 	float zNear;

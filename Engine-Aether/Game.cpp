@@ -448,8 +448,6 @@ void Game::DrawBlur()
 	blurPS->SetFloat("blurAmount", 5);
 	blurPS->SetFloat("pixelWidth", 1.0f / width);
 	blurPS->SetFloat("pixelHeight", 1.0f / height);
-	blurPS->SetMatrix4x4("viewMatrixInv", camera->GetViewMatrixInverse());
-	blurPS->SetMatrix4x4("projMatrixInv", camera->GetProjectionMatrixInverse());
 	blurPS->SetFloat("focusPlaneZ", focusZ);
 	blurPS->SetFloat("zFar", 100.0f);
 	blurPS->SetFloat("zNear", 0.1f);
