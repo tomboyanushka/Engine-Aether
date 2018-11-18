@@ -62,6 +62,8 @@ Game::~Game()
 	if (skyPS) delete skyPS;
 	if (skyVS) delete skyVS;
 
+	if (noiseCS) delete noiseCS;
+
 	if (ppRTV) ppRTV->Release();
 	if (ppSRV) ppSRV->Release();
 	if (blurRTV) blurRTV->Release();
@@ -107,6 +109,10 @@ Game::~Game()
 
 	skyDepthState->Release();
 	skyRasterState->Release();
+
+	computeTextureSRV->Release();
+	computeTextureUAV->Release();
+
 	delete earthMaterial;
 	delete marsMaterial;
 	delete saturnMaterial;
@@ -142,12 +148,13 @@ void Game::Init()
 	CreateMatrices();
 
 	InitTextures();
+	InitializeComputeShader();
 
 	//Load skybox texture from DDS file
 	//CreateDDSTextureFromFile(device, L"../../Assets/Textures/orbitalSkybox.dds", 0, &skySRV);
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envEnvHDR.dds", 0, &skySRV);
 	
-	/////////IBL Baker textures////////////////////////////////////////////////////////////////
+	//IBL Baker Textures
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envDiffuseHDR.dds", 0, &skyIrradiance);
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envSpecularHDR.dds", 0, &skyPrefilter);
 	CreateDDSTextureFromFile(device, L"../../Assets/Textures/Skybox/envBrdf.dds", 0, &brdfLookUpTexture);
@@ -181,12 +188,7 @@ void Game::Init()
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&ds, &skyDepthState);
 
-	//Render the scene to texture.
-	//Down sample the texture to to half its size or less.
-	//Perform a horizontal blur on the down sampled texture.
-	//Perform a vertical blur.
-	//Up sample the texture back to the original screen size.
-	//Render that texture to the screen.
+
 
 	//Texture2D
 	//RTV
@@ -238,6 +240,8 @@ void Game::Init()
 	device->CreateShaderResourceView(cocTexture, &srvDesc, &CoCSRV);
 	device->CreateShaderResourceView(dofTexture, &srvDesc, &DoFSRV);
 
+	
+
 	postProcTexture->Release();
 	blurTexture->Release();
 	cocTexture->Release();
@@ -254,9 +258,7 @@ void Game::Init()
 //Load shaders from compile shader object (.cso) 
 //and send data to individual variables on GPU
 void Game::LoadShaders()
-{
-
-	
+{	
 	vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 
@@ -287,9 +289,9 @@ void Game::LoadShaders()
 	DoFPS = new SimplePixelShader(device, context);
 	DoFPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
 
-	//noiseCS = new SimpleComputeShader(device, context);
-	//if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))
-	//	noiseCS->LoadShaderFile(L"ComputeShader.cso");
+	noiseCS = new SimpleComputeShader(device, context);
+	if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))
+		noiseCS->LoadShaderFile(L"ComputeShader.cso");
 }
 
 
@@ -354,7 +356,7 @@ void Game::CreateMesh()
 	
 
 	//materials
-	earthMaterial = new Material(vertexShader, pixelShader, earthSRV, earthNormalSRV, 0, 0, sampler);
+	earthMaterial = new Material(vertexShader, pixelShader, computeTextureSRV, earthNormalSRV, earthSRV, 0, sampler);
 	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaM, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
@@ -504,6 +506,37 @@ void Game::DrawDepthofField()
 
 void Game::InitializeComputeShader()
 {
+	noiseTextureSize = 256;
+	ID3D11Texture2D* noiseTexture;
+
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width = noiseTextureSize;
+	texDesc.Height = noiseTextureSize;
+	texDesc.ArraySize = 1;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	texDesc.CPUAccessFlags = 0;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.MipLevels = 1;
+	texDesc.MiscFlags = 0;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	device->CreateTexture2D(&texDesc, 0, &noiseTexture);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = texDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	device->CreateShaderResourceView(noiseTexture, &srvDesc, &computeTextureSRV);
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = texDesc.Format;
+	uavDesc.Texture2D.MipSlice = 0;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	device->CreateUnorderedAccessView(noiseTexture, &uavDesc, &computeTextureUAV);
+
+	noiseTexture->Release();
 }
 
 void Game::InitTextures()
@@ -586,6 +619,19 @@ void Game::Update(float deltaTime, float totalTime)
 		Quit();
 
 	camera->Update(deltaTime);
+
+	// Launch ("dispatch") compute shader
+	noiseCS->SetInt("iterations", 8);
+	noiseCS->SetFloat("persistence", 0.5f);
+	noiseCS->SetFloat("scale", 0.01f);
+	noiseCS->SetFloat("offset", totalTime);
+	noiseCS->SetUnorderedAccessView("outputTexture", computeTextureUAV);
+	noiseCS->SetShader();
+	noiseCS->CopyAllBufferData();
+	noiseCS->DispatchByThreads(noiseTextureSize, noiseTextureSize, 1);
+
+	// Unbind the texture so we can use it later in draw
+	noiseCS->SetUnorderedAccessView("outputTexture", 0);
 
 	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);

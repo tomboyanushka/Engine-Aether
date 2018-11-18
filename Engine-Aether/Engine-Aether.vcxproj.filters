@@ -124,5 +124,8 @@
     <None Include="Lighting.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="SimplexNoise.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
