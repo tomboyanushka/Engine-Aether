@@ -504,6 +504,22 @@ void Game::DrawDepthofField()
 	DoFPS->SetShaderResourceView("Radius", 0);
 }
 
+void Game::DrawSimplex(float deltaTime, float totalTime)
+{
+	// Launch ("dispatch") compute shader
+	noiseCS->SetInt("iterations", 8);
+	noiseCS->SetFloat("persistence", 0.5f);
+	noiseCS->SetFloat("scale", 0.01f);
+	noiseCS->SetFloat("offset", totalTime);
+	noiseCS->SetUnorderedAccessView("outputTexture", computeTextureUAV);
+	noiseCS->SetShader();
+	noiseCS->CopyAllBufferData();
+	noiseCS->DispatchByThreads(noiseTextureSize, noiseTextureSize, 1);
+
+	// Unbind the texture so we can use it later in draw
+	noiseCS->SetUnorderedAccessView("outputTexture", 0);
+}
+
 void Game::InitializeComputeShader()
 {
 	noiseTextureSize = 256;
@@ -620,18 +636,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	// Launch ("dispatch") compute shader
-	noiseCS->SetInt("iterations", 8);
-	noiseCS->SetFloat("persistence", 0.5f);
-	noiseCS->SetFloat("scale", 0.01f);
-	noiseCS->SetFloat("offset", totalTime);
-	noiseCS->SetUnorderedAccessView("outputTexture", computeTextureUAV);
-	noiseCS->SetShader();
-	noiseCS->CopyAllBufferData();
-	noiseCS->DispatchByThreads(noiseTextureSize, noiseTextureSize, 1);
-
-	// Unbind the texture so we can use it later in draw
-	noiseCS->SetUnorderedAccessView("outputTexture", 0);
+	DrawSimplex(deltaTime, totalTime);
 
 	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);

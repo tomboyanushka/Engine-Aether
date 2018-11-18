@@ -45,6 +45,7 @@ private:
 	void DrawBlur();
 	void DrawCircleofConfusion();
 	void DrawDepthofField();
+	void DrawSimplex(float deltaTime, float totalTime);
 	void InitializeComputeShader();
 	void InitTextures();
 
