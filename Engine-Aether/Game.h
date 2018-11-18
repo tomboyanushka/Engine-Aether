@@ -45,6 +45,8 @@ private:
 	void DrawBlur();
 	void DrawCircleofConfusion();
 	void DrawDepthofField();
+	void InitializeComputeShader();
+	void InitTextures();
 
 	bool isDOFEnabled = false;
 
@@ -84,6 +86,12 @@ private:
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+
+	// Compute shader stuff
+	int noiseTextureSize;
+	SimpleComputeShader* noiseCS;
+	ID3D11ShaderResourceView* computeTextureSRV;
+	ID3D11UnorderedAccessView* computeTextureUAV;
 
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 viewMatrix;

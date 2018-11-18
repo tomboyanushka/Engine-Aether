@@ -115,7 +115,7 @@
     <FxCompile Include="SkyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ComputeShaderBasic.hlsl">
+    <FxCompile Include="ComputeShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

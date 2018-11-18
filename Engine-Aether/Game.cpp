@@ -141,37 +141,7 @@ void Game::Init()
 	LoadShaders();
 	CreateMatrices();
 
-	//loading textures and normal maps
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
-
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_albedo.png", 0, &scratchedA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_normals.png", 0, &scratchedN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_roughness.png", 0, &scratchedR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_metal.png", 0, &scratchedM);
-
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_albedo.png", 0, &cobbleA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_normals.png", 0, &cobbleN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
-
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/diffuse.jpg", 0, &lavaA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/normal.jpg", 0, &lavaN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/roughness.jpg", 0, &lavaR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/metal.jpg", 0, &lavaM);
-
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/wateralbedo.jpg", 0, &waterA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waterroughness.png", 0, &waterR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/watermetal.jpg", 0, &waterM);
-
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/diffuse.png", 0, &woodA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/normal.png", 0, &woodN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/roughness.png", 0, &woodR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/metal.png", 0, &woodM);
-
-
-
+	InitTextures();
 
 	//Load skybox texture from DDS file
 	//CreateDDSTextureFromFile(device, L"../../Assets/Textures/orbitalSkybox.dds", 0, &skySRV);
@@ -316,6 +286,10 @@ void Game::LoadShaders()
 
 	DoFPS = new SimplePixelShader(device, context);
 	DoFPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
+
+	//noiseCS = new SimpleComputeShader(device, context);
+	//if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))
+	//	noiseCS->LoadShaderFile(L"ComputeShader.cso");
 }
 
 
@@ -526,6 +500,42 @@ void Game::DrawDepthofField()
 	DoFPS->SetShaderResourceView("Pixels", 0);
 	DoFPS->SetShaderResourceView("BlurTexture", 0);
 	DoFPS->SetShaderResourceView("Radius", 0);
+}
+
+void Game::InitializeComputeShader()
+{
+}
+
+void Game::InitTextures()
+{
+	//loading textures and normal maps
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Diffuse.jpg", 0, &earthSRV);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Earth_Normal.jpg", 0, &earthNormalSRV);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_albedo.png", 0, &scratchedA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_normals.png", 0, &scratchedN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_roughness.png", 0, &scratchedR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Scratched/scratched_metal.png", 0, &scratchedM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_albedo.png", 0, &cobbleA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_normals.png", 0, &cobbleN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/diffuse.jpg", 0, &lavaA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/normal.jpg", 0, &lavaN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/roughness.jpg", 0, &lavaR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/metal.jpg", 0, &lavaM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/wateralbedo.jpg", 0, &waterA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waterroughness.png", 0, &waterR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/watermetal.jpg", 0, &waterM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/diffuse.png", 0, &woodA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/normal.png", 0, &woodN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/roughness.png", 0, &woodR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/metal.png", 0, &woodM);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
