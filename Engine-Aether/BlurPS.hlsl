@@ -18,7 +18,7 @@ Texture2D Pixels					: register(t0);
 Texture2D DepthBuffer				: register(t1);
 SamplerState Sampler				: register(s0);
 
-float CalcLinearZ(float depth)
+float CalcLinearZ(float depth) //Screenspace Z
 {
 	float2 projectionConstants;
 	projectionConstants.x = zFar / (zFar - zNear);

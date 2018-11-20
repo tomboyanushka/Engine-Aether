@@ -336,10 +336,10 @@ void DXCore::UpdateTitleBarStats()
 	std::ostringstream output;
 	output.precision(6);
 	output << titleBartext <<
-		"Width: " << width <<
-		"Height: " << height <<
-		"FPS: " << fpsFrameCount <<
-		"Frame Time: " << mspf << "ms";
+		//"Width: " << width <<
+		//"Height: " << height <<
+		" FPS: " << fpsFrameCount;// <<
+		//"Frame Time: " << mspf << "ms";
 
 	switch (dxFeatureLevel)
 	{

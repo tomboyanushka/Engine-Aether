@@ -26,11 +26,11 @@ std::vector<Vertex> MapObjlToVertex(std::vector<objl::Vertex> vertices)
 
 Game::Game(HINSTANCE hInstance)
 	: DXCore(
-		hInstance,								//handle
-		"DirectX Game (Good Lord Save Me)",		//text for Title Bar
-		1280,									//width
-		720,									//height
-		true)									//show extra stats
+		hInstance,								
+		"Engine Aether ",		
+		1280,									
+		720,									
+		true)									
 {
 
 	vertexBuffer = 0;
