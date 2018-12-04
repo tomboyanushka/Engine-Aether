@@ -106,9 +106,6 @@
     <FxCompile Include="BlurPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CircleOfConfusionVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="CircleOfConfusionPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>

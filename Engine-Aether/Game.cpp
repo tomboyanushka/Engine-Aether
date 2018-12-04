@@ -53,12 +53,11 @@ Game::~Game()
 	if(vertexShader) delete vertexShader;
 	if (pixelShader) delete pixelShader;
 
-	if (ppPS) delete ppPS;
-	if (ppVS) delete ppVS;
+	if (quadPS) delete quadPS;
+	if (quadVS) delete quadVS;
 	if (blurPS) delete blurPS;
-	if (CoCPS) delete CoCPS;
-	if (CoCVS) delete CoCVS;
-	if (DoFPS) delete DoFPS;
+	if (cocPS) delete cocPS;
+	if (dofPS) delete dofPS;
 	if (skyPS) delete skyPS;
 	if (skyVS) delete skyVS;
 
@@ -68,10 +67,10 @@ Game::~Game()
 	if (ppSRV) ppSRV->Release();
 	if (blurRTV) blurRTV->Release();
 	if (blurSRV) blurSRV->Release();
-	if (CoCRTV) CoCRTV->Release();
-	if (CoCSRV) CoCSRV->Release();
-	if (DoFRTV) DoFRTV->Release();
-	if (DoFSRV) DoFSRV->Release();
+	if (cocRTV) cocRTV->Release();
+	if (cocSRV) cocSRV->Release();
+	if (dofRTV) dofRTV->Release();
+	if (dofSRV) dofSRV->Release();
 	if (depthBufferSRV) depthBufferSRV->Release();
 
 	earthSRV->Release();
@@ -226,8 +225,8 @@ void Game::Init()
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	device->CreateRenderTargetView(postProcTexture, &rtvDesc, &ppRTV);
 	device->CreateRenderTargetView(blurTexture, &rtvDesc, &blurRTV);
-	device->CreateRenderTargetView(cocTexture, &rtvDesc, &CoCRTV);
-	device->CreateRenderTargetView(dofTexture, &rtvDesc, &DoFRTV);
+	device->CreateRenderTargetView(cocTexture, &rtvDesc, &cocRTV);
+	device->CreateRenderTargetView(dofTexture, &rtvDesc, &dofRTV);
 
 	//setting up shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -237,8 +236,8 @@ void Game::Init()
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	device->CreateShaderResourceView(postProcTexture, &srvDesc, &ppSRV);
 	device->CreateShaderResourceView(blurTexture, &srvDesc, &blurSRV);
-	device->CreateShaderResourceView(cocTexture, &srvDesc, &CoCSRV);
-	device->CreateShaderResourceView(dofTexture, &srvDesc, &DoFSRV);
+	device->CreateShaderResourceView(cocTexture, &srvDesc, &cocSRV);
+	device->CreateShaderResourceView(dofTexture, &srvDesc, &dofSRV);
 
 	
 
@@ -271,23 +270,20 @@ void Game::LoadShaders()
 	skyVS = new SimpleVertexShader(device, context);
 	skyVS->LoadShaderFile(L"SkyVS.cso");
 
-	ppVS = new SimpleVertexShader(device, context);
-	ppVS->LoadShaderFile(L"QuadVS.cso");
+	quadVS = new SimpleVertexShader(device, context);
+	quadVS->LoadShaderFile(L"QuadVS.cso");
 
-	ppPS = new SimplePixelShader(device, context);
-	ppPS->LoadShaderFile(L"QuadPS.cso");
+	quadPS = new SimplePixelShader(device, context);
+	quadPS->LoadShaderFile(L"QuadPS.cso");
 
 	blurPS = new SimplePixelShader(device, context);
 	blurPS->LoadShaderFile(L"BlurPS.cso");
 
-	CoCVS = new SimpleVertexShader(device, context);
-	CoCVS->LoadShaderFile(L"CircleOfConfusionVS.cso");
+	cocPS = new SimplePixelShader(device, context);
+	cocPS->LoadShaderFile(L"CircleOfConfusionPS.cso");
 
-	CoCPS = new SimplePixelShader(device, context);
-	CoCPS->LoadShaderFile(L"CircleOfConfusionPS.cso");
-
-	DoFPS = new SimplePixelShader(device, context);
-	DoFPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
+	dofPS = new SimplePixelShader(device, context);
+	dofPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
 
 	noiseCS = new SimpleComputeShader(device, context);
 	if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))
@@ -415,7 +411,7 @@ void Game::DrawBlur()
 	context->OMSetRenderTargets(1, &blurRTV, 0);
 
 	//post process shaders
-	ppVS->SetShader();
+	quadVS->SetShader();
 	blurPS->SetShader();
 
 	blurPS->SetShaderResourceView("Pixels", ppSRV);
@@ -444,22 +440,22 @@ void Game::DrawBlur()
 
 void Game::DrawCircleofConfusion()
 {
-	//setting CoCRTV
+	//setting cocRTV
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &CoCRTV, 0);
+	context->OMSetRenderTargets(1, &cocRTV, 0);
 
-	CoCVS->SetShader();
-	CoCPS->SetShader();
+	quadVS->SetShader();
+	cocPS->SetShader();
 
-	CoCPS->SetShaderResourceView("Pixels", ppSRV);
-	CoCPS->SetSamplerState("Sampler", sampler);
-	CoCPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
-	CoCPS->SetFloat("focusPlaneZ", focusZ);
-	CoCPS->SetFloat("scale", 0.15f);
-	CoCPS->SetFloat("zFar", 100.0f);
-	CoCPS->SetFloat("zNear", 0.1f);
-	CoCPS->CopyAllBufferData();
+	cocPS->SetShaderResourceView("Pixels", ppSRV);
+	cocPS->SetSamplerState("Sampler", sampler);
+	cocPS->SetShaderResourceView("DepthBuffer", depthBufferSRV);
+	cocPS->SetFloat("focusPlaneZ", focusZ);
+	cocPS->SetFloat("scale", 0.15f);
+	cocPS->SetFloat("zFar", 100.0f);
+	cocPS->SetFloat("zNear", 0.1f);
+	cocPS->CopyAllBufferData();
 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
@@ -470,26 +466,26 @@ void Game::DrawCircleofConfusion()
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
 	context->Draw(3, 0);
-	CoCPS->SetShaderResourceView("Pixels", 0);
-	CoCPS->SetShaderResourceView("DepthBuffer", 0);
+	cocPS->SetShaderResourceView("Pixels", 0);
+	cocPS->SetShaderResourceView("DepthBuffer", 0);
 }
 
 void Game::DrawDepthofField()
 {
-	//setting DOFRTV
+	//setting dofRTV
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
-	context->OMSetRenderTargets(1, &DoFRTV, 0);
+	context->OMSetRenderTargets(1, &dofRTV, 0);
 
-	ppVS->SetShader();
-	DoFPS->SetShader();
+	quadVS->SetShader();
+	dofPS->SetShader();
 
-	DoFPS->SetShaderResourceView("Pixels", ppSRV);
-	DoFPS->SetSamplerState("Sampler", sampler);
-	DoFPS->SetShaderResourceView("BlurTexture", blurSRV);
-	DoFPS->SetShaderResourceView("Radius", CoCSRV);
+	dofPS->SetShaderResourceView("Pixels", ppSRV);
+	dofPS->SetSamplerState("Sampler", sampler);
+	dofPS->SetShaderResourceView("BlurTexture", blurSRV);
+	dofPS->SetShaderResourceView("Radius", cocSRV);
 
-	DoFPS->CopyAllBufferData();
+	dofPS->CopyAllBufferData();
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
@@ -499,9 +495,9 @@ void Game::DrawDepthofField()
 	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
 	context->Draw(3, 0);
-	DoFPS->SetShaderResourceView("Pixels", 0);
-	DoFPS->SetShaderResourceView("BlurTexture", 0);
-	DoFPS->SetShaderResourceView("Radius", 0);
+	dofPS->SetShaderResourceView("Pixels", 0);
+	dofPS->SetShaderResourceView("BlurTexture", 0);
+	dofPS->SetShaderResourceView("Radius", 0);
 }
 
 void Game::DrawSimplex(float deltaTime, float totalTime)
@@ -655,11 +651,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	if (GetAsyncKeyState(VK_TAB))
 	{
-		isDOFEnabled = true;
+		isdofEnabled = true;
 	}
 	else
 	{
-		isDOFEnabled = false;
+		isdofEnabled = false;
 	}
 	
 }
@@ -706,25 +702,25 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->OMSetDepthStencilState(0, 0);
 	context->OMSetRenderTargets(1, &backBufferRTV, 0);
 
-	ppVS->SetShader();
-	ppPS->SetShader();
+	quadVS->SetShader();
+	quadPS->SetShader();
 	ID3D11ShaderResourceView* result = nullptr;
-	if (isDOFEnabled)
+	if (isdofEnabled)
 	{
-		result = DoFSRV;
+		result = dofSRV;
 	}
 	else
 	{
 		result = ppSRV;
 	}
-	ppPS->SetShaderResourceView("Pixels", result);
-	ppPS->SetSamplerState("Sampler", sampler);
-	ppPS->CopyAllBufferData();
+	quadPS->SetShaderResourceView("Pixels", result);
+	quadPS->SetSamplerState("Sampler", sampler);
+	quadPS->CopyAllBufferData();
 
 	context->Draw(3, 0);
 
 	swapChain->Present(0, 0);
-	ppPS->SetShaderResourceView("Pixels", 0);
+	quadPS->SetShaderResourceView("Pixels", 0);
 
 }
 

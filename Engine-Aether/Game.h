@@ -49,7 +49,7 @@ private:
 	void InitializeComputeShader();
 	void InitTextures();
 
-	bool isDOFEnabled = false;
+	bool isdofEnabled = false;
 
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
@@ -77,13 +77,12 @@ private:
 
 
 	//shaders
-	SimpleVertexShader* ppVS;
-	SimplePixelShader* ppPS;
+	SimpleVertexShader* quadVS;
+	SimplePixelShader* quadPS;
 	SimplePixelShader* blurPS;
-	SimplePixelShader* CoCPS;
-	SimpleVertexShader* CoCVS;
-	SimplePixelShader* DoFPS;
-	SimpleVertexShader* DofVS;
+	SimplePixelShader* cocPS;
+	SimplePixelShader* dofPS;
+	SimpleVertexShader* dofVS;
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -134,11 +133,11 @@ private:
 	ID3D11RenderTargetView* blurRTV;
 	ID3D11ShaderResourceView* blurSRV;
 
-	ID3D11RenderTargetView* CoCRTV; //CircleOfConfusionRTV and SRV
-	ID3D11ShaderResourceView* CoCSRV;
+	ID3D11RenderTargetView* cocRTV; //CircleOfConfusionRTV and SRV
+	ID3D11ShaderResourceView* cocSRV;
 
-	ID3D11RenderTargetView* DoFRTV;
-	ID3D11ShaderResourceView* DoFSRV;
+	ID3D11RenderTargetView* dofRTV;
+	ID3D11ShaderResourceView* dofSRV;
 
 
 };
