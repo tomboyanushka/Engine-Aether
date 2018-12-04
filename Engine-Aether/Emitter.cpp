@@ -199,12 +199,105 @@ Emitter::Emitter(unsigned int maxParticles, float emissionRate, float lifetime, 
 
 Emitter::~Emitter()
 {
+	particlePoolUAV->Release();
+	particleDrawUAV->Release();
+	particleDeadUAV->Release();
+
+	particlePoolSRV->Release();
+	particleDrawSRV->Release();
+
+	drawArgsBuffer->Release();
+	drawArgsUAV->Release();
+
+	indexBuffer->Release();
+	additiveBlend->Release();
+	depthWriteOff->Release();
 }
 
 void Emitter::Update(float dt, float tt)
 {
+	ID3D11UnorderedAccessView* none[8] = {};
+	context->CSSetUnorderedAccessViews(0, 8, none, 0);
+
+	emitTimeCounter += dt;
+	while (emitTimeCounter >= timeBetweenEmit)
+	{
+		int emitCount = (int)(emitTimeCounter / timeBetweenEmit);
+		emitCount = min(emitCount, 65535);
+		emitTimeCounter = fmod(emitTimeCounter, timeBetweenEmit);
+
+		emitCS->SetShader();
+		emitCS->SetFloat("TotalTime", tt);
+		emitCS->SetInt("EmitCount", emitCount);
+		emitCS->SetInt("MaxParticles", (int)maxParticles);
+		emitCS->SetInt("GridSize", 100);
+		emitCS->SetUnorderedAccessView("ParticlePool", particlePoolUAV);
+		emitCS->SetUnorderedAccessView("DeadList", particleDeadUAV);
+		emitCS->CopyAllBufferData();
+		emitCS->DispatchByThreads(emitCount, 1, 1);
+	}
+
+	context->CSSetUnorderedAccessViews(0, 8, none, 0);
+
+
+	//Update
+	updateCS->SetShader();
+	updateCS->SetFloat("DT", dt);
+	updateCS->SetFloat("TotalTime", tt);
+	updateCS->SetFloat("Lifetime", lifetime);
+	updateCS->SetInt("MaxParticles", maxParticles);
+	updateCS->SetUnorderedAccessView("ParticlePool", particlePoolUAV);
+	updateCS->SetUnorderedAccessView("DeadList", particleDeadUAV);
+	updateCS->SetUnorderedAccessView("DrawList", particleDrawUAV, 0);
+
+	updateCS->CopyAllBufferData();
+	updateCS->DispatchByThreads(maxParticles, 1, 1);
+
+	context->CSSetUnorderedAccessViews(0, 8, none, 0);
+
+	//draw data
+	copyDrawCountCS->SetShader();
+	copyDrawCountCS->SetInt("VertsPerParticle", 6);
+	copyDrawCountCS->CopyAllBufferData();
+	copyDrawCountCS->SetUnorderedAccessView("DrawArgs", drawArgsUAV);
+	copyDrawCountCS->SetUnorderedAccessView("DrawList", particleDrawUAV);
+	copyDrawCountCS->DispatchByThreads(1, 1, 1);
+
+	context->CSSetUnorderedAccessViews(0, 8, none, 0);
+
 }
 
 void Emitter::Draw(Camera * camera, float aspectRatio, float width, float height, bool additive)
 {
+	if (additive)
+	{
+		context->OMSetBlendState(additiveBlend, 0, 0xFFFFFFFF);
+		context->OMSetDepthStencilState(depthWriteOff, 0);
+	}
+	{
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->VSSetShaderResources(0, 1, &particlePoolSRV);
+		context->VSSetShaderResources(1, 1, &particleDrawSRV);
+
+		particleVS->SetShader();
+		particleVS->SetMatrix4x4("world", XMFLOAT4X4(1, 0, 0, 0,
+													 0, 1, 0, 0,
+													 0, 0, 1, 0,
+													 0, 0, 0, 1));
+		particleVS->SetMatrix4x4("view", camera->GetViewMatrix());
+		particleVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+		particleVS->SetFloat("aspectRatio", aspectRatio);
+		particleVS->SetFloat2("oneOverWidthHeight", XMFLOAT2(1.f / width, 1.f / height));
+		particleVS->CopyAllBufferData();
+		particlePS->SetShader();
+		context->DrawIndexedInstancedIndirect(drawArgsBuffer, 0);
+	}
+	ID3D11ShaderResourceView* none[16] = {};
+	context->VSSetShaderResources(0, 16, none); //why none
+
+	if (additive)
+	{
+		context->OMSetBlendState(0, 0, 0xFFFFFFFF); //reset?
+		context->OMSetDepthStencilState(0, 0);
+	}
 }
