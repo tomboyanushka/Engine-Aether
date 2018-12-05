@@ -16,6 +16,7 @@ struct ParticleDraw
 {
 	uint Index;
 	float DistanceSq;
+	float2 padding;
 };
 
 float3 CalcGridPos(uint index, int gridSize)

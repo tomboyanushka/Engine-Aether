@@ -246,6 +246,21 @@ void Game::Init()
 	cocTexture->Release();
 	dofTexture->Release();
 
+	//particle setup
+	particleEmitter = new Emitter(
+		1000000,
+		1000000.0f, // Particles per second
+		1000.0f, // Particle lifetime
+		device,
+		context,
+		particleDeadListInitCS,
+		particleEmitCS,
+		particleUpdateCS,
+		particleCopyDrawCountCS,
+		particleDefaultVS,
+		particlePS,
+		particleVS);
+
 	//what kind of shape do you want to draw?
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -286,8 +301,36 @@ void Game::LoadShaders()
 	dofPS->LoadShaderFile(L"DepthOfFieldCompPS.cso");
 
 	noiseCS = new SimpleComputeShader(device, context);
-	if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))
+	if (!noiseCS->LoadShaderFile(L"Debug/ComputeShader.cso"))		//checking both for .exe and .cpp
 		noiseCS->LoadShaderFile(L"ComputeShader.cso");
+
+	particleEmitCS = new SimpleComputeShader(device, context);
+	if (!particleEmitCS->LoadShaderFile(L"Debug/ParticleEmitCS.cso"))
+		particleEmitCS->LoadShaderFile(L"ParticleEmitCS.cso");
+
+	particleUpdateCS = new SimpleComputeShader(device, context);
+	if (!particleUpdateCS->LoadShaderFile(L"Debug/ParticleUpdateCS.cso"))
+		particleUpdateCS->LoadShaderFile(L"ParticleUpdateCS.cso");
+
+	particleDeadListInitCS = new SimpleComputeShader(device, context);
+	if (!particleDeadListInitCS->LoadShaderFile(L"Debug/ParticleDeadListInitCS.cso"))
+		particleDeadListInitCS->LoadShaderFile(L"ParticleDeadListInitCS.cso");
+
+	particleCopyDrawCountCS = new SimpleComputeShader(device, context);
+	if (!particleCopyDrawCountCS->LoadShaderFile(L"Debug/ParticleCopyDrawCountCS.cso"))
+		particleCopyDrawCountCS->LoadShaderFile(L"ParticleCopyDrawCountCS.cso");
+
+	particleDefaultVS = new SimpleVertexShader(device, context);
+	if (!particleDefaultVS->LoadShaderFile(L"Debug/ParticleDefaultVS.cso"))
+		particleDefaultVS->LoadShaderFile(L"ParticleDefaultVS.cso");
+
+	particleVS = new SimpleVertexShader(device, context);
+	if (!particleVS->LoadShaderFile(L"Debug/ParticleVS.cso"))
+		particleVS->LoadShaderFile(L"ParticleVS.cso");
+
+	particlePS = new SimplePixelShader(device, context);
+	if (!particlePS->LoadShaderFile(L"Debug/ParticlePS.cso"))
+		particlePS->LoadShaderFile(L"ParticlePS.cso");
 }
 
 
@@ -657,6 +700,16 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		isdofEnabled = false;
 	}
+
+	// Handle particle update
+	static bool updateParticles = true;
+
+
+	if (updateParticles)
+	{
+		particleEmitter->Update(deltaTime, totalTime);
+	}
+
 	
 }
 
@@ -683,6 +736,8 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
+	// Draw particles
+	particleEmitter->Draw(camera, (float)width / height, (float)width, (float)height, true);
 
 	for (auto e : entities)
 	{

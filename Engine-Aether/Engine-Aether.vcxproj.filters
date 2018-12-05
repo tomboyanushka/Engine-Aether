@@ -22,6 +22,9 @@
     <Filter Include="Header Files\Shaders">
       <UniqueIdentifier>{9909af1e-6fdf-4247-9a7a-71a85aec7248}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Shaders\Particles">
+      <UniqueIdentifier>{cc93d878-cf69-4ca3-8689-af6a9832bb8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -121,23 +124,26 @@
     <FxCompile Include="ComputeShader.hlsl">
       <Filter>Header Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ParticleVS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ParticleDefaultVS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ParticlePS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ParticleUpdateCS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ParticleEmitCS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
+    <FxCompile Include="ParticleCopyDrawCountCS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
     </FxCompile>
     <FxCompile Include="ParticleDeadListInitCS.hlsl">
-      <Filter>Header Files\Shaders</Filter>
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleDefaultVS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleEmitCS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticlePS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleUpdateCS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleVS.hlsl">
+      <Filter>Header Files\Shaders\Particles</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -145,11 +151,11 @@
     <None Include="Lighting.hlsli">
       <Filter>Header Files\Shaders</Filter>
     </None>
-    <None Include="SimplexNoise.hlsli">
-      <Filter>Header Files\Shaders</Filter>
-    </None>
     <None Include="ParticleIncludes.hlsli">
-      <Filter>Header Files\Shaders</Filter>
+      <Filter>Header Files\Shaders\Particles</Filter>
+    </None>
+    <None Include="SimplexNoise.hlsli">
+      <Filter>Header Files\Shaders\Particles</Filter>
     </None>
   </ItemGroup>
 </Project>

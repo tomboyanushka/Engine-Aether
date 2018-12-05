@@ -11,6 +11,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <time.h>
+#include "Emitter.h"
 using namespace DirectX;
 
 
@@ -86,6 +87,16 @@ private:
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+
+	// Particle shaders
+	SimpleVertexShader* particleDefaultVS;
+	SimpleVertexShader* particleVS;
+	SimplePixelShader* particlePS;
+	SimpleComputeShader* particleEmitCS;
+	SimpleComputeShader* particleUpdateCS;
+	SimpleComputeShader* particleDeadListInitCS;
+	SimpleComputeShader* particleCopyDrawCountCS;
+	Emitter* particleEmitter;
 
 	// Compute shader stuff
 	int noiseTextureSize;
