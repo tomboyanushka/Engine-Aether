@@ -1,27 +1,7 @@
-// Copyright(C) 2011 by Ashima Arts(Simplex noise)
-// Copyright(C) 2011 by Stefan Gustavson(Classic noise)
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
+#ifndef NOISE_INCLUDED
+#define NOISE_INCLUDED
 //
-// Description : Array and textureless GLSL 2D/3D/4D simplex 
-//               noise functions.
+// Description : Array and textureless GLSL 2D simplex noise function.
 //      Author : Ian McEwan, Ashima Arts.
 //  Maintainer : ijm
 //     Lastmod : 20110822 (ijm)
@@ -29,24 +9,23 @@
 //               Distributed under the MIT License. See LICENSE file.
 //               https://github.com/ashima/webgl-noise
 // 
-
-// Converted to HLSL:
-// - vec2, vec3 & vec4 changed to float2, float3 & float4
-// - fract() to frac()
-
-#ifndef SIMPLEX_NOISE_HLSLI
-#define SIMPLEX_NOISE_HLSLI
+float4 mod289(float4 x) {
+	return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+float3 mod289(float3 x) {
+	return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
 
 float2 mod289(float2 x) {
 	return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
-float3 mod289(float3 x) {
+float mod289(float x) {
 	return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
-float4 mod289(float4 x) {
-	return x - floor(x * (1.0 / 289.0)) * 289.0;
+float permute(float x) {
+	return mod289(((x*34.0) + 1.0)*x);
 }
 
 float3 permute(float3 x) {
@@ -62,9 +41,89 @@ float4 taylorInvSqrt(float4 r)
 	return 1.79284291400159 - 0.85373472095314 * r;
 }
 
-// 3D noise
-float snoise(float3 v)
+float taylorInvSqrt(float r)
 {
+	return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float4 grad4(float j, float4 ip)
+{
+	const float4 ones = float4(1.0, 1.0, 1.0, -1.0);
+	float4 p, s;
+
+	p.xyz = floor(frac(float3(j, j, j) * ip.xyz) * 7.0) * ip.z - 1.0;
+	p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
+	//s = p;//float4(lessThan(p, float4(0.0)));
+	if (p.x<0)
+		s.x = 1;
+	else
+		s.x = 0;
+	if (p.y<0)
+		s.y = 1;
+	else
+		s.y = 0;
+	if (p.z<0)
+		s.z = 1;
+	else
+		s.z = 0;
+	if (p.w<0)
+		s.w = 1;
+	else
+		s.w = 0;
+	p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www;
+
+	return p;
+}
+
+float snoise(float2 v) {
+	const float4 C = float4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+		0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+		-0.577350269189626,  // -1.0 + 2.0 * C.x
+		0.024390243902439); // 1.0 / 41.0
+							// First corner
+	float2 i = floor(v + dot(v, C.yy));
+	float2 x0 = v - i + dot(i, C.xx);
+
+	// Other corners
+	float2 i1;
+	//i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
+	//i1.y = 1.0 - i1.x;
+	i1 = (x0.x > x0.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
+	// x0 = x0 - 0.0 + 0.0 * C.xx ;
+	// x1 = x0 - i1 + 1.0 * C.xx ;
+	// x2 = x0 - 1.0 + 2.0 * C.xx ;
+	float4 x12 = x0.xyxy + C.xxzz;
+	x12.xy -= i1;
+
+	// Permutations
+	i = mod289(i); // Avoid truncation effects in permutation
+	float3 p = permute(permute(i.y + float3(0.0, i1.y, 1.0))
+		+ i.x + float3(0.0, i1.x, 1.0));
+
+	float3 m = max(0.5 - float3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+	m = m * m;
+	m = m * m;
+
+	// Gradients: 41 points uniformly over a line, mapped onto a diamond.
+	// The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+
+	float3 x = 2.0 * frac(p * C.www) - 1.0;
+	float3 h = abs(x) - 0.5;
+	float3 ox = floor(x + 0.5);
+	float3 a0 = x - ox;
+
+	// Normalise gradients implicitly by scaling m
+	// Approximation of: m *= inversesqrt( a0*a0 + h*h );
+	m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h * h);
+
+	// Compute final noise value at P
+	float3 g;
+	g.x = a0.x  * x0.x + h.x  * x0.y;
+	g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+	return 130.0 * dot(m, g);
+}
+
+float snoise(float3 v) {
 	const float2  C = float2(1.0 / 6.0, 1.0 / 3.0);
 	const float4  D = float4(0.0, 0.5, 1.0, 2.0);
 
@@ -132,60 +191,174 @@ float snoise(float3 v)
 	p3 *= norm.w;
 
 	// Mix final noise value
-	float4 m = max(0.6 - float4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+	float4 m = max(0.5 - float4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
 	m = m * m;
 	return 42.0 * dot(m*m, float4(dot(p0, x0), dot(p1, x1),
 		dot(p2, x2), dot(p3, x3)));
 }
 
-// 2D noise
-float snoise(float2 v)
-{
-	const float4 C = float4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
-		0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
-		-0.577350269189626,  // -1.0 + 2.0 * C.x
-		0.024390243902439); // 1.0 / 41.0
-							// First corner
-	float2 i = floor(v + dot(v, C.yy));
-	float2 x0 = v - i + dot(i, C.xx);
+// (sqrt(5) - 1)/4 = F4, used once below
+#define F4 0.309016994374947451
+
+float snoise(float4 v) {
+	const float4  C = float4(0.138196601125011,  // (5 - sqrt(5))/20  G4
+		0.276393202250021,  // 2 * G4
+		0.414589803375032,  // 3 * G4
+		-0.447213595499958); // -1 + 4 * G4
+
+							 // First corner
+	float4 i = floor(v + dot(v, float4(F4, F4, F4, F4)));
+	float4 x0 = v - i + dot(i, C.xxxx);
 
 	// Other corners
-	float2 i1;
-	//i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
-	//i1.y = 1.0 - i1.x;
-	i1 = (x0.x > x0.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
-	// x0 = x0 - 0.0 + 0.0 * C.xx ;
-	// x1 = x0 - i1 + 1.0 * C.xx ;
-	// x2 = x0 - 1.0 + 2.0 * C.xx ;
-	float4 x12 = x0.xyxy + C.xxzz;
-	x12.xy -= i1;
+
+	// Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)
+	float4 i0;
+	float3 isX = step(x0.yzw, x0.xxx);
+	float3 isYZ = step(x0.zww, x0.yyz);
+	//  i0.x = dot( isX, float3( 1.0 ) );
+	i0.x = isX.x + isX.y + isX.z;
+	i0.yzw = 1.0 - isX;
+	//  i0.y += dot( isYZ.xy, float2( 1.0 ) );
+	i0.y += isYZ.x + isYZ.y;
+	i0.zw += 1.0 - isYZ.xy;
+	i0.z += isYZ.z;
+	i0.w += 1.0 - isYZ.z;
+
+	// i0 now contains the unique values 0,1,2,3 in each channel
+	float4 i3 = clamp(i0, 0.0, 1.0);
+	float4 i2 = clamp(i0 - 1.0, 0.0, 1.0);
+	float4 i1 = clamp(i0 - 2.0, 0.0, 1.0);
+
+	//  x0 = x0 - 0.0 + 0.0 * C.xxxx
+	//  x1 = x0 - i1  + 1.0 * C.xxxx
+	//  x2 = x0 - i2  + 2.0 * C.xxxx
+	//  x3 = x0 - i3  + 3.0 * C.xxxx
+	//  x4 = x0 - 1.0 + 4.0 * C.xxxx
+	float4 x1 = x0 - i1 + C.xxxx;
+	float4 x2 = x0 - i2 + C.yyyy;
+	float4 x3 = x0 - i3 + C.zzzz;
+	float4 x4 = x0 + C.wwww;
 
 	// Permutations
-	i = mod289(i); // Avoid truncation effects in permutation
-	float3 p = permute(permute(i.y + float3(0.0, i1.y, 1.0))
-		+ i.x + float3(0.0, i1.x, 1.0));
+	i = mod289(i);
+	float j0 = permute(permute(permute(permute(i.w) + i.z) + i.y) + i.x);
+	float4 j1 = permute(permute(permute(permute(
+		i.w + float4(i1.w, i2.w, i3.w, 1.0))
+		+ i.z + float4(i1.z, i2.z, i3.z, 1.0))
+		+ i.y + float4(i1.y, i2.y, i3.y, 1.0))
+		+ i.x + float4(i1.x, i2.x, i3.x, 1.0));
 
-	float3 m = max(0.5 - float3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
-	m = m * m;
-	m = m * m;
+	// Gradients: 7x7x6 points over a cube, mapped onto a 4-cross polytope
+	// 7*7*6 = 294, which is close to the ring size 17*17 = 289.
+	float4 ip = float4(1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0, 0.0);
 
-	// Gradients: 41 points uniformly over a line, mapped onto a diamond.
-	// The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+	float4 p0 = grad4(j0, ip);
+	float4 p1 = grad4(j1.x, ip);
+	float4 p2 = grad4(j1.y, ip);
+	float4 p3 = grad4(j1.z, ip);
+	float4 p4 = grad4(j1.w, ip);
 
-	float3 x = 2.0 * frac(p * C.www) - 1.0;
-	float3 h = abs(x) - 0.5;
-	float3 ox = floor(x + 0.5);
-	float3 a0 = x - ox;
+	// Normalise gradients
+	float4 norm = taylorInvSqrt(float4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+	p0 *= norm.x;
+	p1 *= norm.y;
+	p2 *= norm.z;
+	p3 *= norm.w;
+	p4 *= taylorInvSqrt(dot(p4, p4));
 
-	// Normalise gradients implicitly by scaling m
-	// Approximation of: m *= inversesqrt( a0*a0 + h*h );
-	m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h * h);
+	// Mix contributions from the five corners
+	float3 m0 = max(0.5 - float3(dot(x0, x0), dot(x1, x1), dot(x2, x2)), 0.0);
+	float2 m1 = max(0.5 - float2(dot(x3, x3), dot(x4, x4)), 0.0);
+	m0 = m0 * m0;
+	m1 = m1 * m1;
+	return 49.0 * (dot(m0*m0, float3(dot(p0, x0), dot(p1, x1), dot(p2, x2)))
+		+ dot(m1*m1, float2(dot(p3, x3), dot(p4, x4))));
 
-	// Compute final noise value at P
-	float3 g;
-	g.x = a0.x  * x0.x + h.x  * x0.y;
-	g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-	return 130.0 * dot(m, g);
 }
+
+float3 snoise3D(float3 v) {
+	float3 n = float3(
+		snoise(float2(v.x, v.y)),
+		snoise(float2(v.y, v.z)),
+		snoise(float2(v.z, v.x))
+		);
+	return n;
+}
+
+float curlX(float3 v, float d) {
+	return (
+		(snoise3D(float3(v.x, v.y + d, v.z)).z - snoise3D(float3(v.x, v.y - d, v.z)).z)
+		- (snoise3D(float3(v.x, v.y, v.z + d)).y - snoise3D(float3(v.x, v.y, v.z - d)).y)
+		) / 2 / d;
+}
+
+float curlY(float3 v, float d) {
+	return (
+		(snoise3D(float3(v.x, v.y, v.z + d)).x - snoise3D(float3(v.x, v.y, v.z - d)).x)
+		- (snoise3D(float3(v.x + d, v.y, v.z)).z - snoise3D(float3(v.x - d, v.y, v.z)).z)
+		) / 2 / d;
+}
+
+float curlZ(float3 v, float d) {
+	return (
+		(snoise3D(float3(v.x + d, v.y, v.z)).y - snoise3D(float3(v.x - d, v.y, v.z)).y)
+		- (snoise3D(float3(v.x, v.y + d, v.z)).x - snoise3D(float3(v.x, v.y - d, v.z)).x)
+		) / 2 / d;
+}
+
+// Edited to go from GLSL to HLSL and parameterize the "d" variable
+// From: https://github.com/cabbibo/glsl-curl-noise/blob/master/curl.glsl
+float3 curlNoise3D(float3 p, float d) {
+
+	//const float d = .1;
+	float3 dx = float3(d, 0.0, 0.0);
+	float3 dy = float3(0.0, d, 0.0);
+	float3 dz = float3(0.0, 0.0, d);
+
+	float3 p_x0 = snoise3D(p - dx);
+	float3 p_x1 = snoise3D(p + dx);
+	float3 p_y0 = snoise3D(p - dy);
+	float3 p_y1 = snoise3D(p + dy);
+	float3 p_z0 = snoise3D(p - dz);
+	float3 p_z1 = snoise3D(p + dz);
+
+	float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
+	float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
+	float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
+
+	//const float divisor = 1.0 / (2.0 * d);
+	return (float3(x, y, z) * (2 * d));
+
+}
+
+
+// Calculates multiple octaves of noise and combines them
+// together - like "Generate Clouds" from Photoshop
+// http://cmaher.github.io/posts/working-with-simplex-noise/
+float CalcNoiseWithOctaves(float3 seed, float scale, float offset, float persistence, int iterations)
+{
+	float maxAmp = 0;
+	float amp = 1;
+	float noise = 0;
+	float freq = scale;
+
+	for (int i = 0; i < iterations; i++)
+	{
+		float3 itSeed = seed;
+		itSeed.xy *= freq;
+		itSeed.z = offset;
+
+		float adjNoise = snoise(itSeed) * 0.5f + 0.5f;
+		noise += adjNoise * amp;
+		maxAmp += amp;
+		amp *= persistence;
+		freq *= 2.0f;
+	}
+
+	// Get the average
+	return noise / maxAmp;
+}
+
 
 #endif
