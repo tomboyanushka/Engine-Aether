@@ -2,6 +2,7 @@
 #define __PARTICLE_INCLUDES
 struct Particle
 {
+	//color age position size velocity alive 
 	float4 Color;
 	float Age;
 	float3 Position;

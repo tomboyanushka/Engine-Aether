@@ -13,14 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{9909af1e-6fdf-4247-9a7a-71a85aec7248}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Core">
       <UniqueIdentifier>{025b38fa-cd0b-4ef1-9dc9-3e88f23daee5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{d422c2af-7d5f-437b-bdfb-362de835ec2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Shaders">
+      <UniqueIdentifier>{9909af1e-6fdf-4247-9a7a-71a85aec7248}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -92,58 +92,64 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="QuadVS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="QuadPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="BlurPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="CircleOfConfusionPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DepthOfFieldCompPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyVS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ComputeShader.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ParticleVS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ParticleDefaultVS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ParticlePS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="ParticleUpdateCS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleEmitCS.hlsl">
+      <Filter>Header Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleDeadListInitCS.hlsl">
+      <Filter>Header Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Lighting.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </None>
     <None Include="SimplexNoise.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </None>
     <None Include="ParticleIncludes.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Header Files\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
