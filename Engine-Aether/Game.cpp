@@ -58,6 +58,13 @@ Game::~Game()
 	if (blurPS) delete blurPS;
 	if (cocPS) delete cocPS;
 	if (dofPS) delete dofPS;
+	if (particlePS) delete particlePS;
+	if (particleEmitCS) delete particleEmitCS;
+	if (particleUpdateCS) delete particleUpdateCS;
+	if (particleDeadListInitCS) delete particleDeadListInitCS;
+	if (particleCopyDrawCountCS) delete particleCopyDrawCountCS;
+	if (particleDefaultVS) delete particleDefaultVS;
+	if (particleVS) delete particleVS;
 	if (skyPS) delete skyPS;
 	if (skyVS) delete skyVS;
 
@@ -109,8 +116,8 @@ Game::~Game()
 	skyDepthState->Release();
 	skyRasterState->Release();
 
-	computeTextureSRV->Release();
-	computeTextureUAV->Release();
+	if(computeTextureSRV) computeTextureSRV->Release();
+	if(computeTextureUAV) computeTextureUAV->Release();
 
 	delete earthMaterial;
 	delete marsMaterial;
@@ -673,6 +680,8 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	particleEmitter->Update(deltaTime, totalTime);
+
 	camera->Update(deltaTime);
 
 	DrawSimplex(deltaTime, totalTime);
@@ -702,13 +711,13 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	// Handle particle update
-	static bool updateParticles = true;
+	//static bool updateParticles = true;
 
 
-	if (updateParticles)
-	{
-		particleEmitter->Update(deltaTime, totalTime);
-	}
+	//if (updateParticles)
+	//{
+	
+	//}
 
 	
 }

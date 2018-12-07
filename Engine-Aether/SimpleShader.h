@@ -34,7 +34,8 @@ struct SimpleConstantBuffer
 	ID3D11Buffer* ConstantBuffer;
 	unsigned char* LocalDataBuffer;
 	std::vector<SimpleShaderVariable> Variables;
-	_D3D_CBUFFER_TYPE Type;
+	D3D_CBUFFER_TYPE Type;
+	//_D3D_CBUFFER_TYPE Type;
 	//ID3D11ShaderReflectionConstantBuffer* Type;
 
 	
