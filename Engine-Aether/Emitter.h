@@ -25,7 +25,7 @@ struct ParticleSort
 {
 	unsigned int index;
 	float distanceSq;
-
+	//float padding[2];
 };
 
 class Emitter

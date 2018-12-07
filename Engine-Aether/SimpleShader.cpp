@@ -100,7 +100,7 @@ bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 	D3D11_SHADER_DESC shaderDesc;
 	refl->GetDesc(&shaderDesc);
 
-	// Create resource arrays
+	// Get the number of buffers and make the resource array
 	constantBufferCount = shaderDesc.ConstantBuffers;
 	constantBuffers = new SimpleConstantBuffer[constantBufferCount];
 
@@ -152,6 +152,9 @@ bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 		D3D11_SHADER_BUFFER_DESC bufferDesc;
 		cb->GetDesc(&bufferDesc);
 
+		// Save the type, which we reference when setting these buffers
+		constantBuffers[b].Type = bufferDesc.Type;
+
 		// Get the description of the resource binding, so
 		// we know exactly how it's bound in the shader
 		D3D11_SHADER_INPUT_BIND_DESC bindDesc;
@@ -165,8 +168,7 @@ bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 		// Create this constant buffer
 		D3D11_BUFFER_DESC newBuffDesc;
 		newBuffDesc.Usage = D3D11_USAGE_DEFAULT;
-		//newBuffDesc.ByteWidth = bufferDesc.Size;
-		newBuffDesc.ByteWidth = (bufferDesc.Size + 15) & ~15;
+		newBuffDesc.ByteWidth = max(bufferDesc.Size, 16); // NEW: Must be multiple of 16
 		newBuffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		newBuffDesc.CPUAccessFlags = 0;
 		newBuffDesc.MiscFlags = 0;
@@ -762,6 +764,11 @@ void SimpleVertexShader::SetShaderAndCBs()
 	// Set the constant buffers
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->VSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,
@@ -883,6 +890,11 @@ void SimplePixelShader::SetShaderAndCBs()
 	// Set the constant buffers
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->PSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,
@@ -1006,6 +1018,11 @@ void SimpleDomainShader::SetShaderAndCBs()
 	// Set the constant buffers
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->DSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,
@@ -1128,6 +1145,11 @@ void SimpleHullShader::SetShaderAndCBs()
 	// Set the constant buffers?
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->HSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,
@@ -1372,6 +1394,11 @@ void SimpleGeometryShader::SetShaderAndCBs()
 	// Set the constant buffers?
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->GSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,
@@ -1557,6 +1584,11 @@ void SimpleComputeShader::SetShaderAndCBs()
 	// Set the constant buffers?
 	for (unsigned int i = 0; i < constantBufferCount; i++)
 	{
+		// Skip "buffers" that aren't true constant buffers
+		if (constantBuffers[i].Type != D3D11_CT_CBUFFER)
+			continue;
+
+		// This is a real constant buffer, so set it
 		deviceContext->CSSetConstantBuffers(
 			constantBuffers[i].BindIndex,
 			1,

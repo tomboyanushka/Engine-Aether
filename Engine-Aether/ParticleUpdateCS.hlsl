@@ -48,7 +48,7 @@ void main( uint3 id : SV_DispatchThreadID )
 		ParticleDraw drawData;
 		drawData.Index = id.x;
 		drawData.DistanceSq = 0.0f;
-		drawData.padding = float2(0, 0);
+		//drawData.padding = float2(0, 0);
 		DrawList[drawIndex] = drawData;
 	}
 }
