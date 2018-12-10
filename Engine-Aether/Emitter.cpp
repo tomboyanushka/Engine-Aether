@@ -1,11 +1,24 @@
 #include "Emitter.h"
 
 
-Emitter::Emitter(unsigned int maxParticles, float emissionRate, float lifetime, ID3D11Device * device, ID3D11DeviceContext * context, SimpleComputeShader * deadListInitCS, SimpleComputeShader * emitCS, SimpleComputeShader * updateCS, SimpleComputeShader * copyDrawCountCS, SimpleVertexShader * particleDefaultVS, SimplePixelShader * particlePS, SimpleVertexShader * particleVS)
+Emitter::Emitter(
+	unsigned int maxParticles, 
+	float emissionRate, 
+	float lifetime, 
+	ID3D11Device * device, 
+	ID3D11DeviceContext * context, 
+	SimpleComputeShader * deadListInitCS, 
+	SimpleComputeShader * emitCS, 
+	SimpleComputeShader * updateCS, 
+	SimpleComputeShader * copyDrawCountCS, 
+	SimpleVertexShader * particleDefaultVS, 
+	SimplePixelShader * particlePS, 
+	SimpleVertexShader * particleVS)
 {
 	this->maxParticles = maxParticles;
 	this->emissionRate = emissionRate;
 	this->lifetime = lifetime;
+
 	this->context = context;
 	this->emitCS = emitCS;
 	this->updateCS = updateCS;
@@ -15,7 +28,7 @@ Emitter::Emitter(unsigned int maxParticles, float emissionRate, float lifetime, 
 	this->particlePS = particlePS;
 
 	emitTimeCounter = 0.0f;
-	timeBetweenEmit = 1.0f;
+	timeBetweenEmit = 10.0f / emissionRate;
 
 	//scoping bc it's good practice
 	//Particle index buffer
