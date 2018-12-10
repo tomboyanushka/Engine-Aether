@@ -132,6 +132,7 @@ Game::~Game()
 	delete skyMesh;
 	delete camera;
 
+	delete particleEmitter;
 	for (auto e : entities)
 	{
 		delete e;
@@ -745,9 +746,7 @@ void Game::Draw(float deltaTime, float TotalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Draw particles
-	particleEmitter->Draw(camera, (float)width / height, (float)width, (float)height, true);
-
+	
 	for (auto e : entities)
 	{
 		DrawEntity(e);
@@ -782,6 +781,10 @@ void Game::Draw(float deltaTime, float TotalTime)
 	quadPS->CopyAllBufferData();
 
 	context->Draw(3, 0);
+
+	// Draw particles
+	particleEmitter->Draw(camera, (float)width / height, (float)width, (float)height, true);
+
 
 	swapChain->Present(0, 0);
 	quadPS->SetShaderResourceView("Pixels", 0);
