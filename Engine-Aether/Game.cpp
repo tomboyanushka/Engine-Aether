@@ -681,7 +681,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	particleEmitter->Update(deltaTime, totalTime);
+	
 
 	camera->Update(deltaTime);
 
@@ -711,14 +711,16 @@ void Game::Update(float deltaTime, float totalTime)
 		isdofEnabled = false;
 	}
 
-	// Handle particle update
-	//static bool updateParticles = true;
+	static bool updateParticles = false;
+	bool currentP = (GetAsyncKeyState('P') & 0x8000) != 0;
+	if (currentP && !prevP) { updateParticles = !updateParticles; }
+	prevP = currentP;
 
 
-	//if (updateParticles)
-	//{
-	
-	//}
+	if (updateParticles)
+	{
+		particleEmitter->Update(deltaTime, totalTime);
+	}
 
 	
 }

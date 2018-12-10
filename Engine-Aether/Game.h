@@ -136,7 +136,7 @@ private:
 
 	POINT prevMousePos;
 
-
+	bool prevP;
 	//postprocess
 	ID3D11RenderTargetView* ppRTV;
 	ID3D11ShaderResourceView* ppSRV;
