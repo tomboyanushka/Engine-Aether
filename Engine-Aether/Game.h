@@ -61,6 +61,7 @@ private:
 	SimplePixelShader* skyPS;
 	ID3D11RasterizerState* skyRasterState;
 	ID3D11DepthStencilState* skyDepthState;
+	ID3D11DepthStencilState* depthWriteDisabled;
 
 	//textures
 	ID3D11SamplerState* sampler;

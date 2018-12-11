@@ -80,12 +80,12 @@ Game::~Game()
 	if (dofSRV) dofSRV->Release();
 	if (depthBufferSRV) depthBufferSRV->Release();
 
-	earthSRV->Release();
-	earthNormalSRV->Release();
-	scratchedA->Release();
-	scratchedM->Release();
-	scratchedN->Release();
-	scratchedR->Release();
+	if(earthSRV) earthSRV->Release();
+	if(earthNormalSRV) earthNormalSRV->Release();
+	if(scratchedA) scratchedA->Release();
+	if(scratchedM) scratchedM->Release();
+	if(scratchedN) scratchedN->Release();
+	if(scratchedR) scratchedR->Release();
 
 	cobbleA->Release();
 	cobbleM->Release();
@@ -133,6 +133,8 @@ Game::~Game()
 	delete camera;
 
 	delete particleEmitter;
+	
+
 	for (auto e : entities)
 	{
 		delete e;
@@ -784,10 +786,19 @@ void Game::Draw(float deltaTime, float TotalTime)
 
 	context->Draw(3, 0);
 
-	// Draw particles
+	// Draw particles=============================
+	D3D11_DEPTH_STENCIL_DESC ds = {};
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&ds, &depthWriteDisabled);
+	context->OMSetDepthStencilState(depthWriteDisabled, 0);
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+	
 	particleEmitter->Draw(camera, (float)width / height, (float)width, (float)height, true);
+	depthWriteDisabled->Release();
 
-
+	//Done===========================================
 	swapChain->Present(0, 0);
 	quadPS->SetShaderResourceView("Pixels", 0);
 
