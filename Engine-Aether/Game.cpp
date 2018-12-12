@@ -418,7 +418,7 @@ void Game::CreateMesh()
 	entities.push_back(new GameEntity(sphereMesh, marsMaterial));
 	entities.push_back(new GameEntity(sphereMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
-	entities.push_back(new GameEntity(cubeMesh, cubeMaterial));
+	entities.push_back(new GameEntity(sphereMesh, cubeMaterial));
 
 }
 
@@ -625,10 +625,10 @@ void Game::InitTextures()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/roughness.jpg", 0, &lavaR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/metal.jpg", 0, &lavaM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/wateralbedo.jpg", 0, &waterA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waternormal.jpg", 0, &waterN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/waterroughness.png", 0, &waterR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/watermetal.jpg", 0, &waterM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/albedo.jpg", 0, &waterA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/normal.jpg", 0, &waterN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/roughness.jpg", 0, &waterR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/metal.jpg", 0, &waterM);
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/diffuse.png", 0, &woodA);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/normal.png", 0, &woodN);
