@@ -68,9 +68,10 @@ private:
 	ID3D11ShaderResourceView* earthSRV, *earthNormalSRV;
 	ID3D11ShaderResourceView *scratchedA, *scratchedN, *scratchedR, *scratchedM;
 	ID3D11ShaderResourceView *cobbleA, *cobbleN, *cobbleR, *cobbleM;
-	ID3D11ShaderResourceView *lavaA, *lavaN, *lavaR, *lavaM;
+	ID3D11ShaderResourceView *groundA, *groundN, *groundR, *groundM;
 	ID3D11ShaderResourceView *waterA, *waterN, *waterR, *waterM;
 	ID3D11ShaderResourceView *woodA, *woodN, *woodR, *woodM;
+	ID3D11ShaderResourceView *benchA, *benchN, *benchR, *benchM;
 
 	//for IBL
 	ID3D11ShaderResourceView* skyIrradiance;
@@ -111,10 +112,11 @@ private:
 
 	//meshes
 	Mesh* earthMesh;
-	Mesh* marsMesh;
+	Mesh* quadMesh;
 	Mesh* sphereMesh;
 	Mesh* cubeMesh;
 	Mesh* skyMesh;
+	Mesh* benchMesh;
 
 	//entities
 	std::vector<GameEntity*> entities;
@@ -125,6 +127,7 @@ private:
 	Material* saturnMaterial;
 	Material* sphereMaterial;
 	Material* cubeMaterial;
+	Material* benchMaterial;
 
 	Camera* camera;
 

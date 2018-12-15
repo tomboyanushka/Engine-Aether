@@ -92,10 +92,10 @@ Game::~Game()
 	cobbleN->Release();
 	cobbleR->Release();
 
-	lavaA->Release();
-	lavaN->Release();
-	lavaR->Release();
-	lavaM->Release();
+	groundA->Release();
+	groundN->Release();
+	groundR->Release();
+	groundM->Release();
 
 	waterA->Release();
 	waterN->Release();
@@ -106,6 +106,11 @@ Game::~Game()
 	woodN->Release();
 	woodM->Release();
 	woodR->Release();
+
+	benchA->Release();
+	benchN->Release();
+	benchM->Release();
+	benchR->Release();
 
 	skySRV->Release();
 	skyIrradiance->Release();
@@ -124,12 +129,16 @@ Game::~Game()
 	delete saturnMaterial;
 	delete sphereMaterial;
 	delete cubeMaterial;
+	delete benchMaterial;
 
 	delete earthMesh;
-	delete marsMesh;
+	delete quadMesh;
 	delete sphereMesh;
 	delete cubeMesh;
 	delete skyMesh;
+	delete benchMesh;
+
+
 	delete camera;
 
 	delete particleEmitter;
@@ -379,46 +388,37 @@ void Game::CreateMatrices()
 
 void Game::CreateMesh()
 {
-	objl::Loader loader; //credits: https://github.com/Bly7/OBJ-Loader
-	loader.LoadFile("../../Assets/Models/sphere.obj");
-	auto verts = MapObjlToVertex(loader.LoadedVertices);
-	auto indices = loader.LoadedMeshes[0].Indices;
-	earthMesh = new Mesh();
-	earthMesh->CreateBasicGeometry(verts.data(), (UINT)verts.size(), indices.data(), (UINT)indices.size(), device);
 
-	loader.LoadFile("../Assets/Models/Mars.obj");
-	auto marsverts = MapObjlToVertex(loader.LoadedVertices);
-	auto marsindices = loader.LoadedMeshes[0].Indices;
-	marsMesh = new Mesh();
-	marsMesh->CreateBasicGeometry(marsverts.data(), (UINT)marsverts.size(), marsindices.data(), (UINT)marsindices.size(), device);
+	earthMesh = new Mesh("../../Assets/Models/sphere.obj", device);
 
+	quadMesh = new Mesh("../../Assets/Models/quad.obj", device);
 
-	loader.LoadFile("../../Assets/Models/sphere.obj");
-	auto sphereverts = MapObjlToVertex(loader.LoadedVertices);
-	auto sphereindices = loader.LoadedMeshes[0].Indices;
-	sphereMesh = new Mesh();
-	sphereMesh->CreateBasicGeometry(sphereverts.data(), (UINT)sphereverts.size(), sphereindices.data(), (UINT)sphereindices.size(), device);
+	sphereMesh = new Mesh("../../Assets/Models/sphere.obj", device);
 	
 	cubeMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
 	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
+
+	benchMesh = new Mesh("../../Assets/Models/bench.obj", device);
 	
 
 	//materials
 	earthMaterial = new Material(vertexShader, pixelShader, computeTextureSRV, earthNormalSRV, earthSRV, 0, sampler);
-	marsMaterial = new Material(vertexShader, pixelShader, lavaA, lavaN, lavaR, lavaM, sampler);
+	marsMaterial = new Material(vertexShader, pixelShader, groundA, groundN, groundR, groundM, sampler);
 	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
 	cubeMaterial = new Material(vertexShader, pixelShader, woodA, woodN, woodR, woodM, sampler);
+	benchMaterial = new Material(vertexShader, pixelShader, benchA, benchN, benchR, benchM, sampler);
 
 	
 
 	//entities
 	entities.push_back(new GameEntity(sphereMesh, earthMaterial));
-	entities.push_back(new GameEntity(sphereMesh, marsMaterial));
+	entities.push_back(new GameEntity(quadMesh, marsMaterial));
 	entities.push_back(new GameEntity(sphereMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
 	entities.push_back(new GameEntity(sphereMesh, cubeMaterial));
+	entities.push_back(new GameEntity(benchMesh, benchMaterial));
 
 }
 
@@ -620,10 +620,10 @@ void Game::InitTextures()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_roughness.png", 0, &cobbleR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Cobble/cobblestone_metal.png", 0, &cobbleM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/diffuse.jpg", 0, &lavaA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/normal.jpg", 0, &lavaN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/roughness.jpg", 0, &lavaR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/lava/metal.jpg", 0, &lavaM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/ground/rough_albedo.png", 0, &groundA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/ground/rough_normals.png", 0, &groundN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/ground/rough_roughness.png", 0, &groundR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/ground/rough_metal.png", 0, &groundM);
 
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/albedo.jpg", 0, &waterA);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/water/normal.jpg", 0, &waterN);
@@ -634,6 +634,11 @@ void Game::InitTextures()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/normal.png", 0, &woodN);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/roughness.png", 0, &woodR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/metal.png", 0, &woodM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/diffuse.png", 0, &benchA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/normal.png", 0, &benchN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/roughness.png", 0, &benchR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/metal.png", 0, &benchM);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
@@ -693,7 +698,8 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
 	entities[0]->SetTranslation(XMFLOAT3(2, 0, 2));
 
-	entities[1]->SetTranslation(XMFLOAT3(1.5f, 0, 5));
+	entities[1]->SetTranslation(XMFLOAT3(0.f, -2.f, 5.f));
+	entities[1]->SetScale(XMFLOAT3(20, 10, 20));
 
 	//entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
 

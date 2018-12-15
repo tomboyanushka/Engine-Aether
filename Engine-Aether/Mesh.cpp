@@ -15,11 +15,11 @@ Mesh::Mesh()
 Mesh::Mesh(const char * objFile, ID3D11Device * device)
 {
 	// File input object
-	std::ifstream obj(objFile);
+	//std::ifstream obj(objFile);
 
-	// Check for successful open
-	if (!obj.is_open())
-		return;
+	//// Check for successful open
+	//if (!obj.is_open())
+	//	return;
 
 	// Variables used while reading the file
 	std::vector<XMFLOAT3> positions;     // Positions from the file
