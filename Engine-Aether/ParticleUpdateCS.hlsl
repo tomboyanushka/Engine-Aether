@@ -29,8 +29,10 @@ void main( uint3 id : SV_DispatchThreadID )
 	part.Alive = (float)(part.Age < Lifetime);
 	part.Position += part.Velocity * DT;
 
+	float2 noise = (frac(sin(dot(part.Position.xy, float2(12.9898, 78.233)*2.0)) * 43758.5453));
+
 	//3D curl noise
-	float3 curlPos = part.Position * 0.1f;
+	float3 curlPos = part.Position * 0.2f; // *noise.x;
 	float3 curlVel = curlNoise3D(curlPos, 1.0f);
 	part.Velocity = curlVel * 2;
 

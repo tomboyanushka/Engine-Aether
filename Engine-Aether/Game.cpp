@@ -112,10 +112,15 @@ Game::~Game()
 	houseM->Release();
 	houseR->Release();
 
-	someMeshA->Release();
-	someMeshN->Release();
-	someMeshM->Release();
-	someMeshR->Release();
+	statueMeshA->Release();
+	statueMeshN->Release();
+	statueMeshM->Release();
+	statueMeshR->Release();
+
+	snowmanA->Release();
+	snowmanN->Release();
+	snowmanM->Release();
+	snowmanR->Release();
 
 	skySRV->Release();
 	skyIrradiance->Release();
@@ -135,7 +140,8 @@ Game::~Game()
 	delete sphereMaterial;
 	delete cubeMaterial;
 	delete houseMaterial;
-	delete someMaterial;
+	delete statueMaterial;
+	delete snowmanMaterial;
 
 	delete earthMesh;
 	delete quadMesh;
@@ -143,7 +149,8 @@ Game::~Game()
 	delete cubeMesh;
 	delete skyMesh;
 	delete houseMesh;
-	delete someMesh;
+	delete statueMesh;
+	delete snowmanMesh;
 
 
 	delete camera;
@@ -274,8 +281,8 @@ void Game::Init()
 
 	//particle setup
 	particleEmitter = new Emitter(
-		1000000,
-		1000000.0f, // Particles per second
+		100000,
+		100000.0f, // Particles per second
 		1000.0f, // Particle lifetime
 		device,
 		context,
@@ -408,7 +415,9 @@ void Game::CreateMesh()
 
 	houseMesh = new Mesh("../../Assets/Models/hatka_local_.obj", device);
 
-	someMesh = new Mesh("../../Assets/Models/Lion-snake.obj", device);
+	statueMesh = new Mesh("../../Assets/Models/Lion-snake.obj", device);
+
+	snowmanMesh = new Mesh("../../Assets/Models/Snowman.obj", device);
 	
 
 	//materials
@@ -418,7 +427,8 @@ void Game::CreateMesh()
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
 	cubeMaterial = new Material(vertexShader, pixelShader, woodA, woodN, woodR, woodM, sampler);
 	houseMaterial = new Material(vertexShader, pixelShader, houseA, houseN, houseR, houseM, sampler);
-	someMaterial = new Material(vertexShader, pixelShader, someMeshA, someMeshN, someMeshR, someMeshM, sampler);
+	statueMaterial = new Material(vertexShader, pixelShader, statueMeshA, statueMeshN, statueMeshR, statueMeshM, sampler);
+	snowmanMaterial = new Material(vertexShader, pixelShader, snowmanA, snowmanN, snowmanR, snowmanM, sampler);
 
 	
 
@@ -429,7 +439,8 @@ void Game::CreateMesh()
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
 	entities.push_back(new GameEntity(sphereMesh, cubeMaterial));
 	entities.push_back(new GameEntity(houseMesh, houseMaterial));
-	entities.push_back(new GameEntity(someMesh, someMaterial));
+	entities.push_back(new GameEntity(statueMesh, statueMaterial));
+	entities.push_back(new GameEntity(snowmanMesh, snowmanMaterial));
 
 }
 
@@ -651,10 +662,15 @@ void Game::InitTextures()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/roughness.png", 0, &houseR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/metal.png", 0, &houseM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/diffuse.png", 0, &someMeshA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/normal.png", 0, &someMeshN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/roughness.png", 0, &someMeshR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/metal.png", 0, &someMeshM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/diffuse.png", 0, &statueMeshA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/normal.png", 0, &statueMeshN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/roughness.png", 0, &statueMeshR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/metal.png", 0, &statueMeshM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Snowman/diffuse.png", 0, &snowmanA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Snowman/normal.png", 0, &snowmanN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Snowman/roughness.png", 0, &snowmanR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/Snowman/metal.png", 0, &snowmanM);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
@@ -714,7 +730,7 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
 	entities[0]->SetTranslation(XMFLOAT3(5, -1, 0));
 
-	entities[1]->SetTranslation(XMFLOAT3(0.f, -2.f, 5.f));
+	entities[1]->SetTranslation(XMFLOAT3(0.f, -2.f, 7.f));
 	entities[1]->SetScale(XMFLOAT3(20, 10, 20));
 
 	//entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
@@ -727,11 +743,14 @@ void Game::Update(float deltaTime, float totalTime)
 
 	entities[5]->SetScale(XMFLOAT3(0.007f, .007f, .007f));
 	entities[5]->SetRotation(0, XM_PIDIV2, 0);
-	entities[5]->SetTranslation(XMFLOAT3(0, -2, 5));
+	entities[5]->SetTranslation(XMFLOAT3(0, -2, 7));
 
 	entities[6]->SetScale(XMFLOAT3(0.05f, 0.05f, 0.05f));
 	entities[6]->SetRotation(0, XM_PI, 0);
-	entities[6]->SetTranslation(XMFLOAT3(1, -2, 0));
+	entities[6]->SetTranslation(XMFLOAT3(4, -2, 7));
+
+	entities[7]->SetRotation(0, XM_PI, 0);
+	entities[7]->SetTranslation(XMFLOAT3(1, -2, 1));
 
 	//entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
 

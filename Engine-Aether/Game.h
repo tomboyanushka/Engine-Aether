@@ -72,7 +72,8 @@ private:
 	ID3D11ShaderResourceView *waterA, *waterN, *waterR, *waterM;
 	ID3D11ShaderResourceView *woodA, *woodN, *woodR, *woodM;
 	ID3D11ShaderResourceView *houseA, *houseN, *houseR, *houseM;
-	ID3D11ShaderResourceView *someMeshA, *someMeshN, *someMeshR, *someMeshM;
+	ID3D11ShaderResourceView *statueMeshA, *statueMeshN, *statueMeshR, *statueMeshM;
+	ID3D11ShaderResourceView *snowmanA, *snowmanN, *snowmanR, *snowmanM;
 
 	//for IBL
 	ID3D11ShaderResourceView* skyIrradiance;
@@ -118,7 +119,8 @@ private:
 	Mesh* cubeMesh;
 	Mesh* skyMesh;
 	Mesh* houseMesh;
-	Mesh* someMesh;
+	Mesh* statueMesh;
+	Mesh* snowmanMesh;
 
 	//entities
 	std::vector<GameEntity*> entities;
@@ -130,7 +132,8 @@ private:
 	Material* sphereMaterial;
 	Material* cubeMaterial;
 	Material* houseMaterial;
-	Material* someMaterial;
+	Material* statueMaterial;
+	Material* snowmanMaterial;
 
 	Camera* camera;
 
