@@ -33,7 +33,7 @@ void main( uint3 id : SV_DispatchThreadID )
 
 	//color age position size velocity alive 
 
-	emitParticle.Color = float4(gridPos / GridSize, 1);
+	emitParticle.Color = float4(1,1,1,1);
 	emitParticle.Age = 0.0f;
 	emitParticle.Position = gridPos / 10 - float3(GridSize / 20.0f, GridSize / 20.0f, -GridSize / 10.0f);
 	emitParticle.Size = 0.05f;

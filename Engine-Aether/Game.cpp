@@ -107,10 +107,15 @@ Game::~Game()
 	woodM->Release();
 	woodR->Release();
 
-	benchA->Release();
-	benchN->Release();
-	benchM->Release();
-	benchR->Release();
+	houseA->Release();
+	houseN->Release();
+	houseM->Release();
+	houseR->Release();
+
+	someMeshA->Release();
+	someMeshN->Release();
+	someMeshM->Release();
+	someMeshR->Release();
 
 	skySRV->Release();
 	skyIrradiance->Release();
@@ -129,14 +134,16 @@ Game::~Game()
 	delete saturnMaterial;
 	delete sphereMaterial;
 	delete cubeMaterial;
-	delete benchMaterial;
+	delete houseMaterial;
+	delete someMaterial;
 
 	delete earthMesh;
 	delete quadMesh;
 	delete sphereMesh;
 	delete cubeMesh;
 	delete skyMesh;
-	delete benchMesh;
+	delete houseMesh;
+	delete someMesh;
 
 
 	delete camera;
@@ -399,7 +406,9 @@ void Game::CreateMesh()
 
 	skyMesh = new Mesh("../../Assets/Models/cube.obj", device);
 
-	benchMesh = new Mesh("../../Assets/Models/bench.obj", device);
+	houseMesh = new Mesh("../../Assets/Models/hatka_local_.obj", device);
+
+	someMesh = new Mesh("../../Assets/Models/Lion-snake.obj", device);
 	
 
 	//materials
@@ -408,7 +417,8 @@ void Game::CreateMesh()
 	saturnMaterial = new Material(vertexShader, pixelShader, waterA, waterN, waterR, waterM, sampler);
 	sphereMaterial = new Material(vertexShader, pixelShader, scratchedA, scratchedN, scratchedR, scratchedM, sampler);
 	cubeMaterial = new Material(vertexShader, pixelShader, woodA, woodN, woodR, woodM, sampler);
-	benchMaterial = new Material(vertexShader, pixelShader, benchA, benchN, benchR, benchM, sampler);
+	houseMaterial = new Material(vertexShader, pixelShader, houseA, houseN, houseR, houseM, sampler);
+	someMaterial = new Material(vertexShader, pixelShader, someMeshA, someMeshN, someMeshR, someMeshM, sampler);
 
 	
 
@@ -418,7 +428,8 @@ void Game::CreateMesh()
 	entities.push_back(new GameEntity(sphereMesh, saturnMaterial));
 	entities.push_back(new GameEntity(sphereMesh, sphereMaterial));
 	entities.push_back(new GameEntity(sphereMesh, cubeMaterial));
-	entities.push_back(new GameEntity(benchMesh, benchMaterial));
+	entities.push_back(new GameEntity(houseMesh, houseMaterial));
+	entities.push_back(new GameEntity(someMesh, someMaterial));
 
 }
 
@@ -635,10 +646,15 @@ void Game::InitTextures()
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/roughness.png", 0, &woodR);
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/floor/metal.png", 0, &woodM);
 
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/diffuse.png", 0, &benchA);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/normal.png", 0, &benchN);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/roughness.png", 0, &benchR);
-	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/bench/metal.png", 0, &benchM);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/diffuse.png", 0, &houseA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/normal.png", 0, &houseN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/roughness.png", 0, &houseR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/house/metal.png", 0, &houseM);
+
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/diffuse.png", 0, &someMeshA);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/normal.png", 0, &someMeshN);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/roughness.png", 0, &someMeshR);
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/hydrant/metal.png", 0, &someMeshM);
 }
 
 void Game::DrawEntity(GameEntity * gameEntityObject)
@@ -696,17 +712,26 @@ void Game::Update(float deltaTime, float totalTime)
 
 	entities[0]->SetScale(XMFLOAT3(1, 1, 1));
 	entities[0]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	entities[0]->SetTranslation(XMFLOAT3(2, 0, 2));
+	entities[0]->SetTranslation(XMFLOAT3(5, -1, 0));
 
 	entities[1]->SetTranslation(XMFLOAT3(0.f, -2.f, 5.f));
 	entities[1]->SetScale(XMFLOAT3(20, 10, 20));
 
 	//entities[2]->SetTranslation(XMFLOAT3(3, 0, 7));
 
-	entities[2]->SetTranslation(XMFLOAT3(-1.5f, 0, 5));
+	entities[2]->SetTranslation(XMFLOAT3(5, -1, 3));
 
 	entities[3]->SetRotation(XM_PI, totalTime * 0.25f, 0.0);
-	entities[3]->SetTranslation(XMFLOAT3(-2, 0, 2));
+	entities[3]->SetTranslation(XMFLOAT3(5, -1, 2));
+	entities[4]->SetTranslation(XMFLOAT3(5, -1, 1));
+
+	entities[5]->SetScale(XMFLOAT3(0.007f, .007f, .007f));
+	entities[5]->SetRotation(0, XM_PIDIV2, 0);
+	entities[5]->SetTranslation(XMFLOAT3(0, -2, 5));
+
+	entities[6]->SetScale(XMFLOAT3(0.05f, 0.05f, 0.05f));
+	entities[6]->SetRotation(0, XM_PI, 0);
+	entities[6]->SetTranslation(XMFLOAT3(1, -2, 0));
 
 	//entities[5]->SetTranslation(XMFLOAT3(0, 0, 2));
 
