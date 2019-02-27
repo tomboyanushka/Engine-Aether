@@ -1,20 +1,22 @@
 # Engine-Aether
 Rendering Engine in DirectX 11
 
-	Depth of Field (Press Tab to see it)
+## Depth of Field (Press Tab to see it)
+![Depth of field](https://raw.githubusercontent.com/tomboyanushka/Engine-Aether/master/Images/Capture2.PNG)
 
-	Smart blur
+- Smart blur
 
-	Circle of Confusion
+- Circle of Confusion
 
-	Physically Based Rendering
+## Physically Based Rendering
+![PBR](https://raw.githubusercontent.com/tomboyanushka/Engine-Aether/master/Images/2.PNG)
 
-	BRDF Cook-Torrence Lighting
+- BRDF Cook-Torrence Lighting
 
-		Directional, Point and Spot Lights
+- Directional, Point and Spot Lights
 
-	Image based lighting
+- Image based lighting
 
-		Directional light
 
-	Particle Effects using Compute Shaders[WIP]
+## Particle Effects using Compute Shaders
+![PBR](https://github.com/tomboyanushka/Engine-Aether/blob/master/Images/finalscene2.gif)
